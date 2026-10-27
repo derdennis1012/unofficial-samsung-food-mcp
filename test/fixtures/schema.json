@@ -1,0 +1,3767 @@
+{
+ "rpcs": {
+  "whisk.x.list.v1.ListAPI/CreateList": {
+   "request": [
+    {
+     "n": 1,
+     "name": "name",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "items",
+     "type": "message",
+     "repeated": true,
+     "ref": "m1"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "list",
+     "type": "message",
+     "ref": "m3"
+    },
+    {
+     "n": 2,
+     "name": "content",
+     "type": "message",
+     "ref": "m4"
+    }
+   ]
+  },
+  "whisk.x.list.v1.ListAPI/UpdateList": {
+   "request": [
+    {
+     "n": 1,
+     "name": "listId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "name",
+     "type": "string"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "list",
+     "type": "message",
+     "ref": "m3"
+    }
+   ]
+  },
+  "whisk.x.list.v1.ListAPI/GetLists": {
+   "request": [],
+   "response": [
+    {
+     "n": 1,
+     "name": "lists",
+     "type": "message",
+     "repeated": true,
+     "ref": "m9"
+    }
+   ]
+  },
+  "whisk.x.list.v1.ListAPI/DeleteList": {
+   "request": [
+    {
+     "n": 1,
+     "name": "listId",
+     "type": "string"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.list.v1.ListAPI/CopyList": {
+   "request": [
+    {
+     "n": 1,
+     "name": "listId",
+     "type": "string"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "list",
+     "type": "message",
+     "ref": "m3"
+    },
+    {
+     "n": 2,
+     "name": "content",
+     "type": "message",
+     "ref": "m4"
+    }
+   ]
+  },
+  "whisk.x.list.v1.ListAPI/SetPrimaryList": {
+   "request": [
+    {
+     "n": 1,
+     "name": "listId",
+     "type": "string"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.list.v1.ListAPI/GetRecentItems": {
+   "request": [],
+   "response": [
+    {
+     "n": 1,
+     "name": "items",
+     "type": "message",
+     "repeated": true,
+     "ref": "m10"
+    }
+   ]
+  },
+  "whisk.x.list.v1.ListFavoriteAPI/GetFavoriteItems": {
+   "request": [],
+   "response": [
+    {
+     "n": 1,
+     "name": "items",
+     "type": "message",
+     "repeated": true,
+     "ref": "m11"
+    }
+   ]
+  },
+  "whisk.x.list.v1.ListFavoriteAPI/ModifyFavoriteItems": {
+   "request": [
+    {
+     "n": 1,
+     "name": "ops",
+     "type": "message",
+     "repeated": true,
+     "ref": "m12"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "diff",
+     "type": "message",
+     "ref": "m16"
+    }
+   ]
+  },
+  "whisk.x.list.v1.ListSharingAPI/GenerateListLinks": {
+   "request": [
+    {
+     "n": 1,
+     "name": "listId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "links",
+     "type": "message",
+     "repeated": true,
+     "ref": "m18"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "access",
+     "type": "message",
+     "ref": "m19"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.CollectionAPI/GetCollection": {
+   "request": [
+    {
+     "n": 1,
+     "name": "collectionId",
+     "type": "string"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "collection",
+     "type": "message",
+     "ref": "m21"
+    },
+    {
+     "n": 2,
+     "name": "recipeCount",
+     "type": "int32"
+    },
+    {
+     "n": 3,
+     "name": "access",
+     "type": "message",
+     "ref": "m22"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.CollectionAPI/CreateCollection": {
+   "request": [
+    {
+     "n": 1,
+     "name": "name",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "accessMode",
+     "type": "enum"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "collection",
+     "type": "message",
+     "ref": "m21"
+    },
+    {
+     "n": 2,
+     "name": "access",
+     "type": "message",
+     "ref": "m22"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.CollectionAPI/UpdateCollection": {
+   "request": [
+    {
+     "n": 1,
+     "name": "collectionId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "name",
+     "type": "string"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "collection",
+     "type": "message",
+     "ref": "m21"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.CollectionSharingAPI/SwitchCollectionAccess": {
+   "request": [
+    {
+     "n": 1,
+     "name": "collectionId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "mode",
+     "type": "enum"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "access",
+     "type": "message",
+     "ref": "m22"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.CollectionAPI/DeleteCollection": {
+   "request": [
+    {
+     "n": 1,
+     "name": "collectionId",
+     "type": "string"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.recipe.v1.CollectionAPI/CopyCollection": {
+   "request": [
+    {
+     "n": 1,
+     "name": "collectionId",
+     "type": "string"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "collection",
+     "type": "message",
+     "ref": "m21"
+    },
+    {
+     "n": 2,
+     "name": "recipeCount",
+     "type": "int32"
+    },
+    {
+     "n": 3,
+     "name": "access",
+     "type": "message",
+     "ref": "m22"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.CollectionSharingAPI/GenerateCollectionLinks": {
+   "request": [
+    {
+     "n": 1,
+     "name": "collectionId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "links",
+     "type": "message",
+     "repeated": true,
+     "ref": "m18"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "links",
+     "type": "message",
+     "repeated": true,
+     "ref": "m20"
+    },
+    {
+     "n": 2,
+     "name": "access",
+     "type": "message",
+     "ref": "m22"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.RecipeAPI/GetRecipe": {
+   "request": [
+    {
+     "n": 1,
+     "name": "recipeId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "recipeMask",
+     "type": "message",
+     "ref": "m23"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "recipe",
+     "type": "message",
+     "ref": "m24"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.RecipeAPI/UpdateRecipe": {
+   "request": [
+    {
+     "n": 1,
+     "name": "recipeId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "recipeMask",
+     "type": "message",
+     "ref": "m23"
+    },
+    {
+     "n": 3,
+     "name": "updateMask",
+     "type": "message",
+     "ref": "m23"
+    },
+    {
+     "n": 4,
+     "name": "payload",
+     "type": "message",
+     "ref": "m42"
+    },
+    {
+     "n": 5,
+     "name": "collectionIds",
+     "type": "string",
+     "repeated": true
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "recipe",
+     "type": "message",
+     "ref": "m24"
+    }
+   ]
+  },
+  "whisk.x.mealplan.v2.MealPlanV2API/AddMealPlanNote": {
+   "request": [
+    {
+     "n": 1,
+     "name": "mealPlanId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "details",
+     "type": "message",
+     "ref": "m45"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "id",
+     "type": "string"
+    }
+   ]
+  },
+  "whisk.x.mealplan.v2.MealPlanV2API/UpdateMealPlanNote": {
+   "request": [
+    {
+     "n": 1,
+     "name": "id",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "mealPlanId",
+     "type": "string"
+    },
+    {
+     "n": 3,
+     "name": "details",
+     "type": "message",
+     "ref": "m45"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.mealplan.v2.MealPlanV2API/DeleteMealPlanNote": {
+   "request": [
+    {
+     "n": 1,
+     "name": "id",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "mealPlanId",
+     "type": "string"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.mealplan.v2.MealPlanV2API/UndeleteMealPlanNote": {
+   "request": [
+    {
+     "n": 1,
+     "name": "id",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "mealPlanId",
+     "type": "string"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.mealplan.v2.MealPlanV2API/UpdateMealContent": {
+   "request": [
+    {
+     "n": 1,
+     "name": "updateMealContent",
+     "type": "message",
+     "ref": "m47"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.mealplan.v1.MealPlanAPI/GetMealPlan": {
+   "request": [
+    {
+     "n": 1,
+     "name": "mealPlanId",
+     "type": "string"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "mealPlanId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "settings",
+     "type": "message",
+     "ref": "m53"
+    },
+    {
+     "n": 3,
+     "name": "access",
+     "type": "message",
+     "ref": "m54"
+    }
+   ]
+  },
+  "whisk.x.mealplan.v1.MealPlanAPI/UpdateMealPlanSettings": {
+   "request": [
+    {
+     "n": 1,
+     "name": "mealPlanId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "settings",
+     "type": "message",
+     "ref": "m53"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.mealplan.v2.MealPlanTemplateAPI/GetTemplateList": {
+   "request": [
+    {
+     "n": 1,
+     "name": "key",
+     "type": "enum"
+    },
+    {
+     "n": 2,
+     "name": "responseMask",
+     "type": "message",
+     "ref": "m23"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "templateListItems",
+     "type": "message",
+     "repeated": true,
+     "ref": "m57"
+    }
+   ]
+  },
+  "whisk.x.mealplan.v2.MealPlanTemplateAPI/UpdateTemplate": {
+   "request": [
+    {
+     "n": 1,
+     "name": "id",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "update",
+     "type": "message",
+     "ref": "m62"
+    },
+    {
+     "n": 3,
+     "name": "updateMask",
+     "type": "message",
+     "ref": "m23"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "ok",
+     "type": "message",
+     "oneof": "sealedValue",
+     "ref": "m63"
+    },
+    {
+     "n": 2,
+     "name": "unknownOrInvalidRecipe",
+     "type": "message",
+     "oneof": "sealedValue",
+     "ref": "m64"
+    }
+   ]
+  },
+  "whisk.x.mealplan.v1.MealPlanSharingAPI/GenerateMealPlanLinks": {
+   "request": [
+    {
+     "n": 1,
+     "name": "mealPlanId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "links",
+     "type": "message",
+     "repeated": true,
+     "ref": "m18"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "access",
+     "type": "message",
+     "ref": "m54"
+    }
+   ]
+  },
+  "whisk.x.user.v1.UserAPI/GetMe": {
+   "request": [],
+   "response": [
+    {
+     "n": 1,
+     "name": "user",
+     "type": "message",
+     "ref": "m65"
+    }
+   ]
+  },
+  "whisk.x.user.v1.UserAPI/UpdateSettings": {
+   "request": [
+    {
+     "n": 1,
+     "name": "settings",
+     "type": "message",
+     "ref": "m80"
+    },
+    {
+     "n": 2,
+     "name": "updateMask",
+     "type": "message",
+     "ref": "m23"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "settings",
+     "type": "message",
+     "ref": "m66"
+    }
+   ]
+  },
+  "whisk.x.premium.v1.PremiumAPI/GetRemainingUsage": {
+   "request": [
+    {
+     "n": 1,
+     "name": "feature",
+     "type": "enum"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "data",
+     "type": "message",
+     "ref": "m82"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.RecipeReviewAPI/PostReviewRating": {
+   "request": [
+    {
+     "n": 1,
+     "name": "recipeId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "rating",
+     "type": "message",
+     "ref": "m38"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "review",
+     "type": "message",
+     "ref": "m36"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.RecipeReviewAPI/PostReview": {
+   "request": [
+    {
+     "n": 1,
+     "name": "recipeId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "payload",
+     "type": "message",
+     "ref": "m85"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "review",
+     "type": "message",
+     "ref": "m36"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.RecipeReviewAPI/GetReview": {
+   "request": [
+    {
+     "n": 1,
+     "name": "recipeReviewId",
+     "type": "string"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "review",
+     "type": "message",
+     "ref": "m36"
+    },
+    {
+     "n": 2,
+     "name": "recipe",
+     "type": "message",
+     "ref": "m86"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.RecipeReviewAPI/DeleteReview": {
+   "request": [
+    {
+     "n": 1,
+     "name": "recipeId",
+     "type": "string"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.recipe.v1.RecipeSearchAPI/GetAutocompleteSuggestions": {
+   "request": [
+    {
+     "n": 1,
+     "name": "query",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "supportedEntities",
+     "type": "message",
+     "repeated": true,
+     "ref": "m87"
+    },
+    {
+     "n": 3,
+     "name": "limit",
+     "type": "int32"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "suggestions",
+     "type": "message",
+     "repeated": true,
+     "ref": "m89"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.RecipeSearchAPI/GetCategories": {
+   "request": [
+    {
+     "n": 1,
+     "name": "categoryType",
+     "type": "enum"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "categories",
+     "type": "message",
+     "repeated": true,
+     "ref": "m92"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.RecipeAPI/GetRecentRecipeQueries": {
+   "request": [],
+   "response": [
+    {
+     "n": 1,
+     "name": "queries",
+     "type": "message",
+     "repeated": true,
+     "ref": "m93"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.RecipeAPI/DeleteRecentRecipeQuery": {
+   "request": [
+    {
+     "n": 1,
+     "name": "query",
+     "type": "string"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.recipe.v1.CollectionAPI/GetCollections": {
+   "request": [
+    {
+     "n": 1,
+     "name": "paging",
+     "type": "message",
+     "ref": "m94"
+    },
+    {
+     "n": 2,
+     "name": "withSmartCollections",
+     "type": "bool"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "smartCollections",
+     "type": "message",
+     "repeated": true,
+     "ref": "m96"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.SmartCollectionAPI/GetSmartCollection": {
+   "request": [
+    {
+     "n": 1,
+     "name": "collectionId",
+     "type": "string"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "collection",
+     "type": "message",
+     "ref": "m97"
+    },
+    {
+     "n": 2,
+     "name": "smartTags",
+     "type": "message",
+     "repeated": true,
+     "ref": "m98"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.SmartCollectionAPI/GetSmartCollectionRecipes": {
+   "request": [
+    {
+     "n": 1,
+     "name": "collectionId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "recipeMask",
+     "type": "message",
+     "ref": "m23"
+    },
+    {
+     "n": 3,
+     "name": "paging",
+     "type": "message",
+     "ref": "m94"
+    },
+    {
+     "n": 4,
+     "name": "smartTags",
+     "type": "string",
+     "repeated": true
+    },
+    {
+     "n": 5,
+     "name": "sorting",
+     "type": "message",
+     "ref": "m99"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "recipes",
+     "type": "message",
+     "repeated": true,
+     "ref": "m100"
+    },
+    {
+     "n": 2,
+     "name": "paging",
+     "type": "message",
+     "ref": "m101"
+    }
+   ]
+  },
+  "whisk.x.homefeed.v1.HomefeedAPI/GetRecommendedRecipes": {
+   "request": [
+    {
+     "n": 1,
+     "name": "paging",
+     "type": "message",
+     "ref": "m94"
+    },
+    {
+     "n": 2,
+     "name": "shufflingSeed",
+     "type": "int32"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "recipes",
+     "type": "message",
+     "repeated": true,
+     "ref": "m102"
+    },
+    {
+     "n": 2,
+     "name": "paging",
+     "type": "message",
+     "ref": "m101"
+    }
+   ]
+  },
+  "whisk.x.health.v1.HealthAPI/Recommend": {
+   "request": [
+    {
+     "n": 1,
+     "name": "period",
+     "type": "message",
+     "ref": "m107"
+    },
+    {
+     "n": 2,
+     "name": "mealTimes",
+     "type": "enum",
+     "repeated": true
+    },
+    {
+     "n": 3,
+     "name": "limit",
+     "type": "int32"
+    },
+    {
+     "n": 4,
+     "name": "responseMask",
+     "type": "message",
+     "ref": "m23"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "recommendation",
+     "type": "message",
+     "repeated": true,
+     "ref": "m108"
+    },
+    {
+     "n": 2,
+     "name": "recommendationStatus",
+     "type": "enum"
+    }
+   ]
+  },
+  "whisk.x.health.v1.HealthAPI/GetAlternativeRecommendations": {
+   "request": [
+    {
+     "n": 1,
+     "name": "startDate",
+     "type": "message",
+     "ref": "m46"
+    },
+    {
+     "n": 2,
+     "name": "mealTime",
+     "type": "enum"
+    },
+    {
+     "n": 3,
+     "name": "limit",
+     "type": "int32"
+    },
+    {
+     "n": 4,
+     "name": "responseMask",
+     "type": "message",
+     "ref": "m23"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "alternativeRecommendedMeals",
+     "type": "message",
+     "ref": "m108"
+    }
+   ]
+  },
+  "whisk.x.dish.v1.DishAPI/GetTopLevelDishes": {
+   "request": [
+    {
+     "n": 1,
+     "name": "cursor",
+     "type": "message",
+     "ref": "m94"
+    },
+    {
+     "n": 2,
+     "name": "withoutChildren",
+     "type": "bool"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "dish",
+     "type": "message",
+     "repeated": true,
+     "ref": "m115"
+    },
+    {
+     "n": 2,
+     "name": "paging",
+     "type": "message",
+     "ref": "m101"
+    }
+   ]
+  },
+  "whisk.x.dish.v1.DishAPI/GetDishByUrl": {
+   "request": [
+    {
+     "n": 1,
+     "name": "urlPath",
+     "type": "string"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "dish",
+     "type": "message",
+     "ref": "m117"
+    }
+   ]
+  },
+  "whisk.x.recipe.v1.RecipeAPI/GetMoreUserRecipes": {
+   "request": [
+    {
+     "n": 1,
+     "name": "recipeId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "recipeMask",
+     "type": "message",
+     "ref": "m23"
+    },
+    {
+     "n": 3,
+     "name": "limit",
+     "type": "int32"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "result",
+     "type": "message",
+     "ref": "m120"
+    }
+   ]
+  },
+  "whisk.x.food.v1.FoodAPI/Search": {
+   "request": [
+    {
+     "n": 1,
+     "name": "query",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "language",
+     "type": "string"
+    },
+    {
+     "n": 3,
+     "name": "paging",
+     "type": "message",
+     "ref": "m94"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "hits",
+     "type": "message",
+     "repeated": true,
+     "ref": "m121"
+    },
+    {
+     "n": 2,
+     "name": "paging",
+     "type": "message",
+     "ref": "m101"
+    }
+   ]
+  },
+  "whisk.x.food.v1.FoodAPI/Get": {
+   "request": [
+    {
+     "n": 1,
+     "name": "foodId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "attributeId",
+     "type": "string"
+    },
+    {
+     "n": 3,
+     "name": "language",
+     "type": "string"
+    },
+    {
+     "n": 4,
+     "name": "responseMask",
+     "type": "message",
+     "ref": "m23"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "food",
+     "type": "message",
+     "ref": "m122"
+    }
+   ]
+  },
+  "whisk.x.food.v1.FoodAPI/Autocomplete": {
+   "request": [
+    {
+     "n": 1,
+     "name": "query",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "language",
+     "type": "string"
+    },
+    {
+     "n": 3,
+     "name": "limit",
+     "type": "int32"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "suggestions",
+     "type": "message",
+     "repeated": true,
+     "ref": "m127"
+    }
+   ]
+  },
+  "whisk.x.foodpedia.v1.FoodpediaAPI/SearchProducts": {
+   "request": [
+    {
+     "n": 1,
+     "name": "query",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "cursor",
+     "type": "message",
+     "ref": "m94"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "food",
+     "type": "message",
+     "repeated": true,
+     "ref": "m128"
+    },
+    {
+     "n": 2,
+     "name": "paging",
+     "type": "message",
+     "ref": "m101"
+    },
+    {
+     "n": 3,
+     "name": "total",
+     "type": "message",
+     "ref": "m129"
+    }
+   ]
+  },
+  "whisk.x.foodpedia.v1.FoodpediaAPI/GetProduct": {
+   "request": [
+    {
+     "n": 1,
+     "name": "productId",
+     "type": "string"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "product",
+     "type": "message",
+     "ref": "m130"
+    }
+   ]
+  },
+  "whisk.x.foodpedia.v1.FoodpediaAPI/GetPopularProducts": {
+   "request": [
+    {
+     "n": 1,
+     "name": "cursor",
+     "type": "message",
+     "ref": "m94"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "products",
+     "type": "message",
+     "repeated": true,
+     "ref": "m138"
+    }
+   ]
+  },
+  "whisk.x.analysis.v1.AnalysisAPI/AnalyzeItems": {
+   "request": [
+    {
+     "n": 1,
+     "name": "items",
+     "type": "string",
+     "repeated": true
+    },
+    {
+     "n": 2,
+     "name": "language",
+     "type": "string"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "items",
+     "type": "message",
+     "repeated": true,
+     "ref": "m139"
+    }
+   ]
+  },
+  "whisk.x.foodlog.v1.FoodLogAPI/AddFoodLogItemsFromMealPlan": {
+   "request": [
+    {
+     "n": 1,
+     "name": "mealPlanId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "mealIds",
+     "type": "string",
+     "repeated": true
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.foodlog.v1.FoodLogAPI/DeleteFoodLogItems": {
+   "request": [
+    {
+     "n": 1,
+     "name": "foodLogIds",
+     "type": "string",
+     "repeated": true
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.foodlist.v1.FoodlistAPI/GetItems": {
+   "request": [
+    {
+     "n": 1,
+     "name": "mask",
+     "type": "message",
+     "ref": "m23"
+    },
+    {
+     "n": 2,
+     "name": "filters",
+     "type": "message",
+     "ref": "m143"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "items",
+     "type": "message",
+     "repeated": true,
+     "ref": "m144"
+    }
+   ]
+  },
+  "whisk.x.foodlist.v1.FoodlistAPI/AddItems": {
+   "request": [
+    {
+     "n": 1,
+     "name": "items",
+     "type": "message",
+     "repeated": true,
+     "ref": "m146"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.foodlist.v1.FoodlistAPI/UpdateItems": {
+   "request": [
+    {
+     "n": 1,
+     "name": "mask",
+     "type": "message",
+     "ref": "m23"
+    },
+    {
+     "n": 2,
+     "name": "items",
+     "type": "message",
+     "repeated": true,
+     "ref": "m147"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.list.v1.ListAPI/GetList": {
+   "request": [
+    {
+     "n": 1,
+     "name": "listId",
+     "type": "string"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "list",
+     "type": "message",
+     "ref": "m3"
+    },
+    {
+     "n": 2,
+     "name": "content",
+     "type": "message",
+     "ref": "m4"
+    }
+   ]
+  },
+  "whisk.x.list.v1.ListAPI/SyncItems": {
+   "request": [
+    {
+     "n": 1,
+     "name": "listId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "lastSync",
+     "type": "int64"
+    },
+    {
+     "n": 3,
+     "name": "items",
+     "type": "message",
+     "repeated": true,
+     "ref": "m148"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.mealplan.v2.MealPlanTemplateAPI/GetTemplate": {
+   "request": [
+    {
+     "n": 1,
+     "name": "id",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "responseMask",
+     "type": "message",
+     "ref": "m23"
+    }
+   ],
+   "response": [
+    {
+     "n": 1,
+     "name": "mealPlanTemplate",
+     "type": "message",
+     "ref": "m58"
+    }
+   ]
+  },
+  "whisk.x.mealplan.v2.MealPlanV2API/ClearScheduledMeals": {
+   "request": [
+    {
+     "n": 1,
+     "name": "mealPlanId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "period",
+     "type": "message",
+     "ref": "m107"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.mealplan.v2.MealPlanV2API/ApplyMealPlanTemplate": {
+   "request": [
+    {
+     "n": 1,
+     "name": "mealPlanId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "mealPlanTemplateId",
+     "type": "string"
+    },
+    {
+     "n": 3,
+     "name": "startDate",
+     "type": "message",
+     "ref": "m46"
+    }
+   ],
+   "response": []
+  },
+  "whisk.x.mealplan.v2.MealPlanV2API/GetMealSchedule": {
+   "request": [
+    {
+     "n": 1,
+     "name": "mealPlanId",
+     "type": "string"
+    },
+    {
+     "n": 2,
+     "name": "period",
+     "type": "message",
+     "ref": "m107"
+    },
+    {
+     "n": 3,
+     "name": "mealMask",
+     "type": "message",
+     "ref": "m23"
+    },
+    {
+     "n": 4,
+     "name": "responseMask",
+     "type": "message",
+     "ref": "m23"
+    }
+   ],
+   "response": []
+  }
+ },
+ "messages": {
+  "m1": [
+   {
+    "n": 1,
+    "name": "raw",
+    "type": "message",
+    "oneof": "source",
+    "ref": "m2"
+   },
+   {
+    "n": 2,
+    "name": "addToRecent",
+    "type": "bool"
+   }
+  ],
+  "m2": [
+   {
+    "n": 1,
+    "name": "text",
+    "type": "string"
+   }
+  ],
+  "m3": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "name",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "primary",
+    "type": "bool"
+   },
+   {
+    "n": 4,
+    "name": "createdTime",
+    "type": "int64"
+   }
+  ],
+  "m4": [
+   {
+    "n": 1,
+    "name": "items",
+    "type": "message",
+    "repeated": true,
+    "ref": "m5"
+   }
+  ],
+  "m5": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "item",
+    "type": "message",
+    "ref": "m6"
+   },
+   {
+    "n": 3,
+    "name": "checked",
+    "type": "bool"
+   },
+   {
+    "n": 4,
+    "name": "analysis",
+    "type": "message",
+    "ref": "m7"
+   }
+  ],
+  "m6": [
+   {
+    "n": 1,
+    "name": "name",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "brand",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "quantity",
+    "type": "float"
+   },
+   {
+    "n": 4,
+    "name": "unit",
+    "type": "string"
+   }
+  ],
+  "m7": [
+   {
+    "n": 1,
+    "name": "category",
+    "type": "message",
+    "ref": "m8"
+   }
+  ],
+  "m8": [
+   {
+    "n": 1,
+    "name": "canonicalName",
+    "type": "string"
+   }
+  ],
+  "m9": [
+   {
+    "n": 1,
+    "name": "list",
+    "type": "message",
+    "ref": "m3"
+   },
+   {
+    "n": 2,
+    "name": "itemCount",
+    "type": "int32"
+   }
+  ],
+  "m10": [
+   {
+    "n": 1,
+    "name": "item",
+    "type": "message",
+    "ref": "m6"
+   }
+  ],
+  "m11": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "item",
+    "type": "message",
+    "ref": "m6"
+   }
+  ],
+  "m12": [
+   {
+    "n": 1,
+    "name": "create",
+    "type": "message",
+    "oneof": "op",
+    "ref": "m13"
+   },
+   {
+    "n": 2,
+    "name": "update",
+    "type": "message",
+    "oneof": "op",
+    "ref": "m14"
+   },
+   {
+    "n": 3,
+    "name": "delete",
+    "type": "message",
+    "oneof": "op",
+    "ref": "m15"
+   }
+  ],
+  "m13": [
+   {
+    "n": 1,
+    "name": "item",
+    "type": "message",
+    "ref": "m6"
+   }
+  ],
+  "m14": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "item",
+    "type": "message",
+    "ref": "m6"
+   }
+  ],
+  "m15": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   }
+  ],
+  "m16": [
+   {
+    "n": 1,
+    "name": "created",
+    "type": "message",
+    "repeated": true,
+    "ref": "m11"
+   },
+   {
+    "n": 2,
+    "name": "updated",
+    "type": "message",
+    "repeated": true,
+    "ref": "m11"
+   },
+   {
+    "n": 3,
+    "name": "deleted",
+    "type": "message",
+    "repeated": true,
+    "ref": "m17"
+   }
+  ],
+  "m17": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   }
+  ],
+  "m18": [
+   {
+    "n": 1,
+    "name": "medium",
+    "type": "enum"
+   }
+  ],
+  "m19": [
+   {
+    "n": 1,
+    "name": "mode",
+    "type": "enum"
+   },
+   {
+    "n": 2,
+    "name": "role",
+    "type": "enum"
+   },
+   {
+    "n": 3,
+    "name": "links",
+    "type": "message",
+    "repeated": true,
+    "ref": "m20"
+   }
+  ],
+  "m20": [
+   {
+    "n": 1,
+    "name": "medium",
+    "type": "enum"
+   },
+   {
+    "n": 2,
+    "name": "link",
+    "type": "string"
+   }
+  ],
+  "m21": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "name",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "shoppinglist",
+    "type": "bool"
+   }
+  ],
+  "m22": [
+   {
+    "n": 1,
+    "name": "mode",
+    "type": "enum"
+   },
+   {
+    "n": 2,
+    "name": "role",
+    "type": "enum"
+   }
+  ],
+  "m23": [
+   {
+    "n": 1,
+    "name": "paths",
+    "type": "string",
+    "repeated": true
+   }
+  ],
+  "m24": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "name",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "description",
+    "type": "string"
+   },
+   {
+    "n": 4,
+    "name": "ingredients",
+    "type": "message",
+    "repeated": true,
+    "ref": "m25"
+   },
+   {
+    "n": 5,
+    "name": "instructions",
+    "type": "message",
+    "ref": "m26"
+   },
+   {
+    "n": 6,
+    "name": "images",
+    "type": "message",
+    "repeated": true,
+    "ref": "m28"
+   },
+   {
+    "n": 7,
+    "name": "source",
+    "type": "message",
+    "ref": "m31"
+   },
+   {
+    "n": 8,
+    "name": "servings",
+    "type": "int32"
+   },
+   {
+    "n": 9,
+    "name": "durations",
+    "type": "message",
+    "ref": "m32"
+   },
+   {
+    "n": 10,
+    "name": "saved",
+    "type": "message",
+    "ref": "m33"
+   },
+   {
+    "n": 11,
+    "name": "language",
+    "type": "string"
+   },
+   {
+    "n": 12,
+    "name": "user",
+    "type": "message",
+    "ref": "m33"
+   },
+   {
+    "n": 13,
+    "name": "reviews",
+    "type": "message",
+    "ref": "m35"
+   }
+  ],
+  "m25": [
+   {
+    "n": 1,
+    "name": "text",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "group",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "id",
+    "type": "string"
+   }
+  ],
+  "m26": [
+   {
+    "n": 1,
+    "name": "steps",
+    "type": "message",
+    "repeated": true,
+    "ref": "m27"
+   }
+  ],
+  "m27": [
+   {
+    "n": 1,
+    "name": "text",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "group",
+    "type": "string"
+   }
+  ],
+  "m28": [
+   {
+    "n": 1,
+    "name": "original",
+    "type": "message",
+    "ref": "m29"
+   },
+   {
+    "n": 2,
+    "name": "responsive",
+    "type": "message",
+    "ref": "m30"
+   }
+  ],
+  "m29": [
+   {
+    "n": 1,
+    "name": "url",
+    "type": "string"
+   }
+  ],
+  "m30": [
+   {
+    "n": 1,
+    "name": "url",
+    "type": "string"
+   }
+  ],
+  "m31": [
+   {
+    "n": 1,
+    "name": "name",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "displayName",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "sourceRecipeUrl",
+    "type": "string"
+   }
+  ],
+  "m32": [
+   {
+    "n": 1,
+    "name": "cookTime",
+    "type": "int32"
+   },
+   {
+    "n": 2,
+    "name": "prepTime",
+    "type": "int32"
+   }
+  ],
+  "m33": [
+   {
+    "n": 1,
+    "name": "collections",
+    "type": "message",
+    "repeated": true,
+    "ref": "m34"
+   },
+   {
+    "n": 2,
+    "name": "value",
+    "type": "bool"
+   },
+   {
+    "n": 3,
+    "name": "owner",
+    "type": "bool"
+   }
+  ],
+  "m34": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   }
+  ],
+  "m35": [
+   {
+    "n": 1,
+    "name": "myReview",
+    "type": "message",
+    "ref": "m36"
+   }
+  ],
+  "m36": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "user",
+    "type": "message",
+    "ref": "m37"
+   },
+   {
+    "n": 3,
+    "name": "rating",
+    "type": "message",
+    "ref": "m38"
+   },
+   {
+    "n": 4,
+    "name": "detailed",
+    "type": "message",
+    "ref": "m39"
+   },
+   {
+    "n": 5,
+    "name": "recipeId",
+    "type": "string"
+   }
+  ],
+  "m37": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "firstName",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "lastName",
+    "type": "string"
+   },
+   {
+    "n": 4,
+    "name": "isMe",
+    "type": "bool"
+   }
+  ],
+  "m38": [
+   {
+    "n": 1,
+    "name": "liked",
+    "type": "bool"
+   }
+  ],
+  "m39": [
+   {
+    "n": 1,
+    "name": "comment",
+    "type": "message",
+    "ref": "m40"
+   },
+   {
+    "n": 2,
+    "name": "tags",
+    "type": "message",
+    "repeated": true,
+    "ref": "m41"
+   }
+  ],
+  "m40": [
+   {
+    "n": 1,
+    "name": "text",
+    "type": "string"
+   }
+  ],
+  "m41": [
+   {
+    "n": 1,
+    "name": "name",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "displayName",
+    "type": "string"
+   }
+  ],
+  "m42": [
+   {
+    "n": 1,
+    "name": "name",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "description",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "ingredients",
+    "type": "message",
+    "repeated": true,
+    "ref": "m25"
+   },
+   {
+    "n": 4,
+    "name": "instructions",
+    "type": "message",
+    "repeated": true,
+    "ref": "m43"
+   },
+   {
+    "n": 5,
+    "name": "images",
+    "type": "message",
+    "repeated": true,
+    "ref": "m29"
+   },
+   {
+    "n": 6,
+    "name": "source",
+    "type": "message",
+    "ref": "m44"
+   },
+   {
+    "n": 7,
+    "name": "servings",
+    "type": "int32"
+   },
+   {
+    "n": 8,
+    "name": "durations",
+    "type": "message",
+    "ref": "m32"
+   },
+   {
+    "n": 9,
+    "name": "language",
+    "type": "string"
+   }
+  ],
+  "m43": [
+   {
+    "n": 1,
+    "name": "text",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "group",
+    "type": "string"
+   }
+  ],
+  "m44": [
+   {
+    "n": 1,
+    "name": "displayName",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "sourceRecipeUrl",
+    "type": "string"
+   }
+  ],
+  "m45": [
+   {
+    "n": 1,
+    "name": "date",
+    "type": "message",
+    "ref": "m46"
+   },
+   {
+    "n": 2,
+    "name": "content",
+    "type": "string"
+   }
+  ],
+  "m46": [
+   {
+    "n": 1,
+    "name": "year",
+    "type": "int32"
+   },
+   {
+    "n": 2,
+    "name": "month",
+    "type": "int32"
+   },
+   {
+    "n": 3,
+    "name": "day",
+    "type": "int32"
+   }
+  ],
+  "m47": [
+   {
+    "n": 1,
+    "name": "food",
+    "type": "message",
+    "oneof": "update",
+    "ref": "m48"
+   },
+   {
+    "n": 2,
+    "name": "mealContentId",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "updateMask",
+    "type": "message",
+    "ref": "m23"
+   },
+   {
+    "n": 4,
+    "name": "isLogged",
+    "type": "bool"
+   }
+  ],
+  "m48": [
+   {
+    "n": 1,
+    "name": "measureQty",
+    "type": "message",
+    "ref": "m49"
+   }
+  ],
+  "m49": [
+   {
+    "n": 1,
+    "name": "simple",
+    "type": "message",
+    "ref": "m50"
+   },
+   {
+    "n": 2,
+    "name": "detailed",
+    "type": "message",
+    "ref": "m51"
+   }
+  ],
+  "m50": [
+   {
+    "n": 1,
+    "name": "amount",
+    "type": "double"
+   },
+   {
+    "n": 2,
+    "name": "unit",
+    "type": "message",
+    "ref": "m41"
+   },
+   {
+    "n": 3,
+    "name": "nutritionCoefficient",
+    "type": "double"
+   }
+  ],
+  "m51": [
+   {
+    "n": 1,
+    "name": "quantity",
+    "type": "double"
+   },
+   {
+    "n": 2,
+    "name": "measure",
+    "type": "message",
+    "ref": "m52"
+   }
+  ],
+  "m52": [
+   {
+    "n": 1,
+    "name": "name",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "amount",
+    "type": "double"
+   }
+  ],
+  "m53": [
+   {
+    "n": 1,
+    "name": "weekStart",
+    "type": "enum"
+   }
+  ],
+  "m54": [
+   {
+    "n": 1,
+    "name": "mode",
+    "type": "enum"
+   },
+   {
+    "n": 2,
+    "name": "role",
+    "type": "enum"
+   },
+   {
+    "n": 3,
+    "name": "links",
+    "type": "message",
+    "repeated": true,
+    "ref": "m20"
+   },
+   {
+    "n": 4,
+    "name": "collaborators",
+    "type": "message",
+    "repeated": true,
+    "ref": "m55"
+   }
+  ],
+  "m55": [
+   {
+    "n": 1,
+    "name": "role",
+    "type": "enum"
+   },
+   {
+    "n": 2,
+    "name": "collaborator",
+    "type": "message",
+    "ref": "m56"
+   }
+  ],
+  "m56": [
+   {
+    "n": 1,
+    "name": "userId",
+    "type": "string"
+   }
+  ],
+  "m57": [
+   {
+    "n": 1,
+    "name": "templates",
+    "type": "message",
+    "repeated": true,
+    "ref": "m58"
+   },
+   {
+    "n": 2,
+    "name": "diet",
+    "type": "message",
+    "ref": "m41"
+   },
+   {
+    "n": 3,
+    "name": "wellnessArea",
+    "type": "message",
+    "ref": "m61"
+   }
+  ],
+  "m58": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "mealsTemplate",
+    "type": "message",
+    "repeated": true,
+    "ref": "m59"
+   },
+   {
+    "n": 3,
+    "name": "title",
+    "type": "string"
+   },
+   {
+    "n": 4,
+    "name": "description",
+    "type": "string"
+   },
+   {
+    "n": 5,
+    "name": "labels",
+    "type": "message",
+    "ref": "m60"
+   }
+  ],
+  "m59": [
+   {
+    "n": 1,
+    "name": "orderDay",
+    "type": "int32"
+   },
+   {
+    "n": 2,
+    "name": "mealTime",
+    "type": "enum"
+   }
+  ],
+  "m60": [
+   {
+    "n": 1,
+    "name": "diets",
+    "type": "message",
+    "repeated": true,
+    "ref": "m41"
+   },
+   {
+    "n": 2,
+    "name": "numberOfDays",
+    "type": "int32"
+   }
+  ],
+  "m61": [
+   {
+    "n": 1,
+    "name": "wellnessArea",
+    "type": "enum"
+   },
+   {
+    "n": 2,
+    "name": "name",
+    "type": "message",
+    "ref": "m41"
+   }
+  ],
+  "m62": [
+   {
+    "n": 1,
+    "name": "title",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "description",
+    "type": "string"
+   }
+  ],
+  "m63": [],
+  "m64": [
+   {
+    "n": 1,
+    "name": "recipeId",
+    "type": "string"
+   }
+  ],
+  "m65": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "settings",
+    "type": "message",
+    "ref": "m66"
+   }
+  ],
+  "m66": [
+   {
+    "n": 1,
+    "name": "firstName",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "lastName",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "language",
+    "type": "string"
+   },
+   {
+    "n": 4,
+    "name": "country",
+    "type": "string"
+   },
+   {
+    "n": 5,
+    "name": "gender",
+    "type": "enum"
+   },
+   {
+    "n": 6,
+    "name": "favouriteCuisines",
+    "type": "message",
+    "repeated": true,
+    "ref": "m67"
+   },
+   {
+    "n": 7,
+    "name": "diets",
+    "type": "message",
+    "repeated": true,
+    "ref": "m68"
+   },
+   {
+    "n": 8,
+    "name": "avoidances",
+    "type": "message",
+    "repeated": true,
+    "ref": "m69"
+   },
+   {
+    "n": 9,
+    "name": "dislikedIngredients",
+    "type": "message",
+    "repeated": true,
+    "ref": "m70"
+   },
+   {
+    "n": 10,
+    "name": "cookingLevel",
+    "type": "enum"
+   },
+   {
+    "n": 11,
+    "name": "householdAdultCount",
+    "type": "int32"
+   },
+   {
+    "n": 12,
+    "name": "pushNotifications",
+    "type": "message",
+    "ref": "m71"
+   },
+   {
+    "n": 13,
+    "name": "emailNotifications",
+    "type": "message",
+    "ref": "m72"
+   },
+   {
+    "n": 14,
+    "name": "weekStart",
+    "type": "enum"
+   },
+   {
+    "n": 15,
+    "name": "username",
+    "type": "string"
+   },
+   {
+    "n": 16,
+    "name": "height",
+    "type": "message",
+    "ref": "m73"
+   },
+   {
+    "n": 17,
+    "name": "weight",
+    "type": "message",
+    "ref": "m74"
+   },
+   {
+    "n": 18,
+    "name": "activityLevel",
+    "type": "message",
+    "ref": "m75"
+   },
+   {
+    "n": 19,
+    "name": "yearOfBirth",
+    "type": "int32"
+   },
+   {
+    "n": 20,
+    "name": "plannedMeals",
+    "type": "message",
+    "repeated": true,
+    "ref": "m76"
+   },
+   {
+    "n": 21,
+    "name": "nutritionGoals",
+    "type": "message",
+    "ref": "m77"
+   }
+  ],
+  "m67": [
+   {
+    "n": 1,
+    "name": "name",
+    "type": "message",
+    "ref": "m41"
+   }
+  ],
+  "m68": [
+   {
+    "n": 1,
+    "name": "name",
+    "type": "message",
+    "ref": "m41"
+   }
+  ],
+  "m69": [
+   {
+    "n": 1,
+    "name": "name",
+    "type": "message",
+    "ref": "m41"
+   }
+  ],
+  "m70": [
+   {
+    "n": 1,
+    "name": "name",
+    "type": "string"
+   }
+  ],
+  "m71": [
+   {
+    "n": 1,
+    "name": "default",
+    "type": "bool"
+   }
+  ],
+  "m72": [
+   {
+    "n": 1,
+    "name": "recipeRecommendation",
+    "type": "bool"
+   },
+   {
+    "n": 2,
+    "name": "productUpdates",
+    "type": "bool"
+   },
+   {
+    "n": 3,
+    "name": "promotionalUpdates",
+    "type": "bool"
+   }
+  ],
+  "m73": [
+   {
+    "n": 1,
+    "name": "value",
+    "type": "double"
+   },
+   {
+    "n": 2,
+    "name": "unit",
+    "type": "enum"
+   }
+  ],
+  "m74": [
+   {
+    "n": 1,
+    "name": "value",
+    "type": "double"
+   },
+   {
+    "n": 2,
+    "name": "unit",
+    "type": "enum"
+   }
+  ],
+  "m75": [
+   {
+    "n": 1,
+    "name": "code",
+    "type": "enum"
+   },
+   {
+    "n": 2,
+    "name": "title",
+    "type": "string"
+   }
+  ],
+  "m76": [
+   {
+    "n": 1,
+    "name": "code",
+    "type": "enum"
+   }
+  ],
+  "m77": [
+   {
+    "n": 1,
+    "name": "calorieGoal",
+    "type": "double"
+   },
+   {
+    "n": 2,
+    "name": "macroRatiosWithName",
+    "type": "message",
+    "ref": "m78"
+   },
+   {
+    "n": 3,
+    "name": "fibreGoal",
+    "type": "double"
+   }
+  ],
+  "m78": [
+   {
+    "n": 1,
+    "name": "macroRatios",
+    "type": "message",
+    "ref": "m79"
+   },
+   {
+    "n": 2,
+    "name": "displayName",
+    "type": "string"
+   }
+  ],
+  "m79": [
+   {
+    "n": 1,
+    "name": "proteinRatio",
+    "type": "double"
+   },
+   {
+    "n": 2,
+    "name": "fatRatio",
+    "type": "double"
+   },
+   {
+    "n": 3,
+    "name": "carbohydrateRatio",
+    "type": "double"
+   }
+  ],
+  "m80": [
+   {
+    "n": 1,
+    "name": "diets",
+    "type": "string",
+    "repeated": true
+   },
+   {
+    "n": 2,
+    "name": "dislikedIngredients",
+    "type": "message",
+    "repeated": true,
+    "ref": "m70"
+   },
+   {
+    "n": 3,
+    "name": "cookingLevel",
+    "type": "enum"
+   },
+   {
+    "n": 4,
+    "name": "pushNotifications",
+    "type": "message",
+    "ref": "m71"
+   },
+   {
+    "n": 5,
+    "name": "emailNotifications",
+    "type": "message",
+    "ref": "m72"
+   },
+   {
+    "n": 6,
+    "name": "height",
+    "type": "message",
+    "ref": "m73"
+   },
+   {
+    "n": 7,
+    "name": "activityLevel",
+    "type": "enum"
+   },
+   {
+    "n": 8,
+    "name": "plannedMeals",
+    "type": "enum",
+    "repeated": true
+   },
+   {
+    "n": 9,
+    "name": "nutritionGoals",
+    "type": "message",
+    "ref": "m81"
+   }
+  ],
+  "m81": [
+   {
+    "n": 1,
+    "name": "calorieGoal",
+    "type": "double"
+   },
+   {
+    "n": 2,
+    "name": "macroRatios",
+    "type": "message",
+    "ref": "m79"
+   },
+   {
+    "n": 3,
+    "name": "fibreGoal",
+    "type": "double"
+   }
+  ],
+  "m82": [
+   {
+    "n": 1,
+    "name": "v1",
+    "type": "message",
+    "ref": "m83"
+   }
+  ],
+  "m83": [
+   {
+    "n": 1,
+    "name": "remaining",
+    "type": "int32"
+   },
+   {
+    "n": 2,
+    "name": "nextUsageAvailableAt",
+    "type": "message",
+    "ref": "m84"
+   }
+  ],
+  "m84": [
+   {
+    "n": 1,
+    "name": "seconds",
+    "type": "int64"
+   }
+  ],
+  "m85": [
+   {
+    "n": 1,
+    "name": "text",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "tags",
+    "type": "string",
+    "repeated": true
+   },
+   {
+    "n": 3,
+    "name": "rating",
+    "type": "message",
+    "ref": "m38"
+   }
+  ],
+  "m86": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "name",
+    "type": "string"
+   }
+  ],
+  "m87": [
+   {
+    "n": 1,
+    "name": "recent",
+    "type": "message",
+    "oneof": "value",
+    "ref": "m88"
+   }
+  ],
+  "m88": [],
+  "m89": [
+   {
+    "n": 1,
+    "name": "entity",
+    "type": "message",
+    "ref": "m90"
+   },
+   {
+    "n": 2,
+    "name": "highlight",
+    "type": "message",
+    "ref": "m91"
+   }
+  ],
+  "m90": [
+   {
+    "n": 1,
+    "name": "text",
+    "type": "string",
+    "oneof": "value"
+   },
+   {
+    "n": 2,
+    "name": "recent",
+    "type": "string",
+    "oneof": "value"
+   }
+  ],
+  "m91": [
+   {
+    "n": 1,
+    "name": "length",
+    "type": "int32"
+   }
+  ],
+  "m92": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "title",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "titleColor",
+    "type": "string"
+   },
+   {
+    "n": 4,
+    "name": "imageUrl",
+    "type": "string"
+   }
+  ],
+  "m93": [
+   {
+    "n": 1,
+    "name": "text",
+    "type": "string"
+   }
+  ],
+  "m94": [
+   {
+    "n": 1,
+    "name": "limit",
+    "type": "int32"
+   },
+   {
+    "n": 2,
+    "name": "cursors",
+    "type": "message",
+    "ref": "m95"
+   }
+  ],
+  "m95": [
+   {
+    "n": 1,
+    "name": "after",
+    "type": "string"
+   }
+  ],
+  "m96": [
+   {
+    "n": 1,
+    "name": "collection",
+    "type": "message",
+    "ref": "m97"
+   }
+  ],
+  "m97": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "name",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "type",
+    "type": "enum"
+   },
+   {
+    "n": 4,
+    "name": "recipeCount",
+    "type": "int32"
+   }
+  ],
+  "m98": [
+   {
+    "n": 1,
+    "name": "value",
+    "type": "message",
+    "ref": "m41"
+   }
+  ],
+  "m99": [
+   {
+    "n": 1,
+    "name": "direction",
+    "type": "enum"
+   }
+  ],
+  "m100": [
+   {
+    "n": 1,
+    "name": "recipe",
+    "type": "message",
+    "ref": "m24"
+   }
+  ],
+  "m101": [
+   {
+    "n": 1,
+    "name": "cursors",
+    "type": "message",
+    "ref": "m95"
+   }
+  ],
+  "m102": [
+   {
+    "n": 1,
+    "name": "community",
+    "type": "message",
+    "ref": "m103"
+   },
+   {
+    "n": 2,
+    "name": "postedBy",
+    "type": "message",
+    "ref": "m37"
+   },
+   {
+    "n": 3,
+    "name": "singleRecipeAdded",
+    "type": "message",
+    "oneof": "item",
+    "ref": "m104"
+   },
+   {
+    "n": 4,
+    "name": "conversation",
+    "type": "message",
+    "oneof": "item",
+    "ref": "m106"
+   }
+  ],
+  "m103": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "name",
+    "type": "string"
+   }
+  ],
+  "m104": [
+   {
+    "n": 1,
+    "name": "recipe",
+    "type": "message",
+    "ref": "m105"
+   }
+  ],
+  "m105": [
+   {
+    "n": 1,
+    "name": "recipeDetails",
+    "type": "message",
+    "ref": "m24"
+   }
+  ],
+  "m106": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "title",
+    "type": "string"
+   }
+  ],
+  "m107": [
+   {
+    "n": 1,
+    "name": "startDate",
+    "type": "message",
+    "ref": "m46"
+   },
+   {
+    "n": 2,
+    "name": "endDate",
+    "type": "message",
+    "ref": "m46"
+   }
+  ],
+  "m108": [
+   {
+    "n": 1,
+    "name": "date",
+    "type": "message",
+    "ref": "m46"
+   },
+   {
+    "n": 2,
+    "name": "mealTime",
+    "type": "enum"
+   },
+   {
+    "n": 3,
+    "name": "recommendedMeals",
+    "type": "message",
+    "repeated": true,
+    "ref": "m109"
+   }
+  ],
+  "m109": [
+   {
+    "n": 1,
+    "name": "recommendedFood",
+    "type": "message",
+    "repeated": true,
+    "ref": "m110"
+   },
+   {
+    "n": 2,
+    "name": "isPlanned",
+    "type": "bool"
+   },
+   {
+    "n": 3,
+    "name": "mealId",
+    "type": "string"
+   },
+   {
+    "n": 4,
+    "name": "explanationReasons",
+    "type": "message",
+    "repeated": true,
+    "ref": "m112"
+   }
+  ],
+  "m110": [
+   {
+    "n": 1,
+    "name": "recipe",
+    "type": "message",
+    "oneof": "recommendation",
+    "ref": "m111"
+   }
+  ],
+  "m111": [
+   {
+    "n": 1,
+    "name": "recipe",
+    "type": "message",
+    "ref": "m24"
+   }
+  ],
+  "m112": [
+   {
+    "n": 1,
+    "name": "dqsAhei",
+    "type": "message",
+    "oneof": "reason",
+    "ref": "m113"
+   },
+   {
+    "n": 2,
+    "name": "caloriesMacros",
+    "type": "message",
+    "oneof": "reason",
+    "ref": "m114"
+   }
+  ],
+  "m113": [
+   {
+    "n": 1,
+    "name": "contributionWeight",
+    "type": "double"
+   },
+   {
+    "n": 2,
+    "name": "component",
+    "type": "enum"
+   }
+  ],
+  "m114": [
+   {
+    "n": 1,
+    "name": "contributionWeight",
+    "type": "double"
+   }
+  ],
+  "m115": [
+   {
+    "n": 1,
+    "name": "parent",
+    "type": "message",
+    "ref": "m116"
+   },
+   {
+    "n": 2,
+    "name": "children",
+    "type": "message",
+    "repeated": true,
+    "ref": "m116"
+   }
+  ],
+  "m116": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "name",
+    "type": "message",
+    "ref": "m41"
+   },
+   {
+    "n": 3,
+    "name": "urlPath",
+    "type": "string"
+   }
+  ],
+  "m117": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "name",
+    "type": "message",
+    "ref": "m41"
+   },
+   {
+    "n": 3,
+    "name": "servingSize",
+    "type": "int32"
+   },
+   {
+    "n": 4,
+    "name": "nutrition",
+    "type": "message",
+    "ref": "m118"
+   }
+  ],
+  "m118": [
+   {
+    "n": 1,
+    "name": "components",
+    "type": "message",
+    "repeated": true,
+    "ref": "m119"
+   }
+  ],
+  "m119": [
+   {
+    "n": 1,
+    "name": "code",
+    "type": "message",
+    "ref": "m41"
+   },
+   {
+    "n": 2,
+    "name": "value",
+    "type": "double"
+   },
+   {
+    "n": 3,
+    "name": "unit",
+    "type": "message",
+    "ref": "m41"
+   }
+  ],
+  "m120": [
+   {
+    "n": 1,
+    "name": "recipes",
+    "type": "message",
+    "repeated": true,
+    "ref": "m24"
+   }
+  ],
+  "m121": [
+   {
+    "n": 1,
+    "name": "foodId",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "attributeId",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "title",
+    "type": "string"
+   },
+   {
+    "n": 4,
+    "name": "imageUrl",
+    "type": "string"
+   }
+  ],
+  "m122": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "title",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "measuresQty",
+    "type": "message",
+    "ref": "m123"
+   },
+   {
+    "n": 4,
+    "name": "imageUrl",
+    "type": "string"
+   }
+  ],
+  "m123": [
+   {
+    "n": 1,
+    "name": "measureQty",
+    "type": "message",
+    "repeated": true,
+    "ref": "m49"
+   },
+   {
+    "n": 2,
+    "name": "measuresQtyWithNutrition",
+    "type": "message",
+    "repeated": true,
+    "ref": "m124"
+   }
+  ],
+  "m124": [
+   {
+    "n": 1,
+    "name": "nutrition",
+    "type": "message",
+    "ref": "m125"
+   }
+  ],
+  "m125": [
+   {
+    "n": 1,
+    "name": "nutrition",
+    "type": "message",
+    "repeated": true,
+    "ref": "m126"
+   }
+  ],
+  "m126": [
+   {
+    "n": 1,
+    "name": "amount",
+    "type": "double"
+   },
+   {
+    "n": 2,
+    "name": "unit",
+    "type": "message",
+    "ref": "m41"
+   },
+   {
+    "n": 3,
+    "name": "code",
+    "type": "message",
+    "ref": "m41"
+   }
+  ],
+  "m127": [
+   {
+    "n": 1,
+    "name": "name",
+    "type": "string"
+   }
+  ],
+  "m128": [
+   {
+    "n": 1,
+    "name": "canonicalName",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "imageUrl",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "localisedTitle",
+    "type": "message",
+    "ref": "m41"
+   }
+  ],
+  "m129": [
+   {
+    "n": 1,
+    "name": "exact",
+    "type": "int32",
+    "oneof": "count"
+   }
+  ],
+  "m130": [
+   {
+    "n": 1,
+    "name": "description",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "linkedRecipes",
+    "type": "message",
+    "repeated": true,
+    "ref": "m24"
+   },
+   {
+    "n": 3,
+    "name": "nutrition",
+    "type": "message",
+    "ref": "m118"
+   },
+   {
+    "n": 4,
+    "name": "title",
+    "type": "string"
+   },
+   {
+    "n": 5,
+    "name": "tips",
+    "type": "message",
+    "repeated": true,
+    "ref": "m131"
+   },
+   {
+    "n": 6,
+    "name": "substitutes",
+    "type": "message",
+    "repeated": true,
+    "ref": "m132"
+   },
+   {
+    "n": 7,
+    "name": "productId",
+    "type": "string"
+   },
+   {
+    "n": 8,
+    "name": "glycemicIndex",
+    "type": "message",
+    "ref": "m134"
+   },
+   {
+    "n": 9,
+    "name": "storageLocationName",
+    "type": "message",
+    "ref": "m41"
+   },
+   {
+    "n": 10,
+    "name": "category",
+    "type": "string"
+   },
+   {
+    "n": 11,
+    "name": "dietsAll",
+    "type": "message",
+    "repeated": true,
+    "ref": "m135"
+   },
+   {
+    "n": 12,
+    "name": "measuresPerOneGram",
+    "type": "message",
+    "ref": "m136"
+   },
+   {
+    "n": 13,
+    "name": "defaultMeasure",
+    "type": "message",
+    "ref": "m137"
+   }
+  ],
+  "m131": [
+   {
+    "n": 1,
+    "name": "tip",
+    "type": "string"
+   }
+  ],
+  "m132": [
+   {
+    "n": 1,
+    "name": "type",
+    "type": "enum"
+   },
+   {
+    "n": 2,
+    "name": "items",
+    "type": "message",
+    "repeated": true,
+    "ref": "m133"
+   }
+  ],
+  "m133": [
+   {
+    "n": 1,
+    "name": "productId",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "displayName",
+    "type": "string"
+   }
+  ],
+  "m134": [
+   {
+    "n": 1,
+    "name": "value",
+    "type": "double"
+   }
+  ],
+  "m135": [
+   {
+    "n": 1,
+    "name": "name",
+    "type": "message",
+    "ref": "m41"
+   },
+   {
+    "n": 2,
+    "name": "isSupported",
+    "type": "bool"
+   }
+  ],
+  "m136": [
+   {
+    "n": 1,
+    "name": "measurePerOneGram",
+    "type": "message",
+    "repeated": true,
+    "ref": "m137"
+   }
+  ],
+  "m137": [
+   {
+    "n": 1,
+    "name": "unit",
+    "type": "message",
+    "ref": "m41"
+   },
+   {
+    "n": 2,
+    "name": "amount",
+    "type": "double"
+   }
+  ],
+  "m138": [
+   {
+    "n": 1,
+    "name": "canonicalName",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "image",
+    "type": "message",
+    "ref": "m30"
+   },
+   {
+    "n": 3,
+    "name": "localisedTitle",
+    "type": "message",
+    "ref": "m41"
+   }
+  ],
+  "m139": [
+   {
+    "n": 1,
+    "name": "sourceText",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "analysis",
+    "type": "message",
+    "ref": "m140"
+   }
+  ],
+  "m140": [
+   {
+    "n": 1,
+    "name": "product",
+    "type": "message",
+    "ref": "m141"
+   },
+   {
+    "n": 2,
+    "name": "category",
+    "type": "message",
+    "ref": "m8"
+   },
+   {
+    "n": 3,
+    "name": "amount",
+    "type": "message",
+    "ref": "m142"
+   },
+   {
+    "n": 4,
+    "name": "comment",
+    "type": "string"
+   }
+  ],
+  "m141": [
+   {
+    "n": 1,
+    "name": "canonicalName",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "originalName",
+    "type": "string"
+   }
+  ],
+  "m142": [
+   {
+    "n": 1,
+    "name": "quantity",
+    "type": "double"
+   },
+   {
+    "n": 2,
+    "name": "unit",
+    "type": "string"
+   }
+  ],
+  "m143": [
+   {
+    "n": 1,
+    "name": "presence",
+    "type": "enum",
+    "repeated": true
+   }
+  ],
+  "m144": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "name",
+    "type": "string"
+   },
+   {
+    "n": 3,
+    "name": "location",
+    "type": "message",
+    "ref": "m145"
+   }
+  ],
+  "m145": [
+   {
+    "n": 1,
+    "name": "code",
+    "type": "enum"
+   }
+  ],
+  "m146": [
+   {
+    "n": 1,
+    "name": "name",
+    "type": "string"
+   }
+  ],
+  "m147": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "location",
+    "type": "enum"
+   }
+  ],
+  "m148": [
+   {
+    "n": 1,
+    "name": "update",
+    "type": "message",
+    "oneof": "op",
+    "ref": "m149"
+   }
+  ],
+  "m149": [
+   {
+    "n": 1,
+    "name": "id",
+    "type": "string"
+   },
+   {
+    "n": 2,
+    "name": "item",
+    "type": "message",
+    "ref": "m6"
+   },
+   {
+    "n": 3,
+    "name": "checked",
+    "type": "bool"
+   }
+  ]
+ },
+ "meta": {
+  "builtAt": "2099-01-01T00:00:00.000Z",
+  "source": "hand-sized test fixture (names used by the tests, arbitrary field numbers)",
+  "bundles": 0
+ }
+}

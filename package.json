@@ -1,0 +1,46 @@
+{
+  "name": "samsung-food-mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Unofficial MCP server and CLI for Samsung Food (Whisk): meal plan, shopping list, recipes and pantry",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/derdennis1012/samsung-food-mcp.git"
+  },
+  "homepage": "https://github.com/derdennis1012/samsung-food-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/derdennis1012/samsung-food-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "samsung-food",
+    "whisk",
+    "meal-planning"
+  ],
+  "bin": {
+    "sf": "bin/sf.js",
+    "samsung-food-mcp": "src/index.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "validate": "node test/validate-har.js",
+    "mcp": "node src/index.js",
+    "test:live": "node test/live/run.js --live",
+    "test:live:cleanup": "node test/live/run.js --live --cleanup"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.13.0",
+    "zod": "^3.23.8"
+  },
+  "author": "Dennis Bölling"
+}
