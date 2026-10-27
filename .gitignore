@@ -1,0 +1,9 @@
+node_modules/
+*.har
+.omc/
+.tmp/
+.env
+schema.json
+foodgraph*.json
+auth.json
+!test/fixtures/schema.json
