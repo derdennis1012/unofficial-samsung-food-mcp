@@ -84,7 +84,8 @@ test('API key: created once with mode 600, reused, env override, constant-time c
   const first = loadOrCreateApiKey({ file, env: {} });
   assert.equal(first.created, true);
   assert.match(first.key, /^sfk_[\w-]{40,}$/);
-  assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  // POSIX permissions do not exist on Windows
+  if (process.platform !== 'win32') assert.equal(fs.statSync(file).mode & 0o777, 0o600);
   const again = loadOrCreateApiKey({ file, env: {} });
   assert.deepEqual([again.key, again.created], [first.key, false]);
   assert.deepEqual(loadOrCreateApiKey({ file, env: { SAMSUNG_FOOD_API_KEY: KEY } }), { key: KEY, source: 'env', created: false });

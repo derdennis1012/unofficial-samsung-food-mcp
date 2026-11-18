@@ -256,7 +256,8 @@ test('writeFileAtomic leaves no temp files and replaces the content', () => {
   writeFileAtomic(file, '{"a":2}');
   assert.equal(fs.readFileSync(file, 'utf8'), '{"a":2}');
   assert.deepEqual(fs.readdirSync(dir), ['x.json']);
-  assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  // POSIX permissions do not exist on Windows
+  if (process.platform !== 'win32') assert.equal(fs.statSync(file).mode & 0o777, 0o600);
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
