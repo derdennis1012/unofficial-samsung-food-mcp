@@ -8,7 +8,13 @@ const pad = (n) => String(n).padStart(2, '0');
 const parts = (ymd) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd));
   if (!m) throw new Error(`invalid date: ${ymd} (expected YYYY-MM-DD)`);
-  return [Number(m[1]), Number(m[2]), Number(m[3])];
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  // Round trip: Date.UTC silently rolls 2026-02-31 over to March 3rd.
+  const t = new Date(Date.UTC(y, mo - 1, d));
+  if (t.getUTCFullYear() !== y || t.getUTCMonth() !== mo - 1 || t.getUTCDate() !== d) {
+    throw new Error(`invalid date: ${ymd} (no such calendar day)`);
+  }
+  return [y, mo, d];
 };
 
 /** Local calendar date of a Date (default: now). */

@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest a new tool, command or improvement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check the [roadmap](https://github.com/derdennis1012/unofficial-samsung-food-mcp/blob/main/ROADMAP.md) and open issues first. Please do not attach tokens, cookies or HAR files.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you want to do?
+      description: Describe the task you cannot do today, not only the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: For a new tool or command, the name, parameters and whether it reads or changes data. If you know the API method (see `sf methods`), name it.
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where should it live?
+      options:
+        - MCP tool
+        - CLI command
+        - Documentation
+        - Other
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I would like to work on this myself

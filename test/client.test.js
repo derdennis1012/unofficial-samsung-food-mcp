@@ -1,7 +1,7 @@
-import { tmpHome } from './setup.js';
+import './setup.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SamsungFood } from '../src/client.js';
+import { SamsungFood, GrpcError } from '../src/client.js';
 import { readSchema } from '../src/schema-build.js';
 
 const FL = 'whisk.x.foodlist.v1.FoodlistAPI/';
@@ -81,8 +81,59 @@ test('applyTemplate with replace clears max(orderDay)+1 days, gaps included', as
   assert.deepEqual(clear.period.endDate, { year: 2026, month: 12, day: 5 }, 'five days: orderDay 0..4');
 });
 
+test('applyTemplate with replace and an unknown template clears nothing', async () => {
+  const notFound = () => {
+    throw new GrpcError(5, 'ERROR_NOT_FOUND', 'GetTemplate');
+  };
+  for (const getTemplate of [notFound, {}]) {
+    const { sf, calls } = mockClient({
+      'whisk.x.mealplan.v2.MealPlanTemplateAPI/GetTemplate': getTemplate,
+      [MP + 'ClearScheduledMeals']: {},
+      [MP + 'ApplyMealPlanTemplate']: {},
+      [MP + 'GetMealSchedule']: {},
+    });
+    for (const opts of [{ replace: true }, { replace: true, days: 7 }]) {
+      await assert.rejects(sf.applyTemplate('bad', { startDate: '2026-12-01', ...opts }));
+    }
+    assert.equal(of(calls, MP + 'ClearScheduledMeals').length, 0, 'nothing cleared');
+    assert.equal(of(calls, MP + 'ApplyMealPlanTemplate').length, 0);
+  }
+});
+
+test('applyTemplate: a failed apply after the clear reports exactly what was removed', async () => {
+  const { sf, calls } = mockClient({
+    'whisk.x.mealplan.v2.MealPlanTemplateAPI/GetTemplate': {
+      mealPlanTemplate: { id: 't1', mealsTemplate: [{ orderDay: 0, mealTime: 3 }, { orderDay: 1, mealTime: 3 }] },
+    },
+    [MP + 'ClearScheduledMeals']: {},
+    [MP + 'ApplyMealPlanTemplate']: () => {
+      throw new GrpcError(13, 'boom', 'ApplyMealPlanTemplate');
+    },
+  });
+  // The fixture schema has no meal fields in GetMealSchedule, so the schedule read is stubbed (normalized form).
+  sf.schedule = async () => ({
+    days: [{ date: '2026-12-02', meals: [{ id: 'm1', mealTime: 3, mealTimeLabel: 'Dinner', title: 'Lasagne', recipeId: 'r1', kind: 'recipe' }] }],
+  });
+  const err = await sf.applyTemplate('t1', { startDate: '2026-12-01', replace: true }).catch((e) => e);
+  assert.equal(of(calls, MP + 'ClearScheduledMeals').length, 1);
+  assert.match(err.message, /failed after the range 2026-12-01 \+ 2 days was cleared/);
+  assert.match(err.message, /2026-12-02 Dinner: Lasagne \(recipe r1\)/);
+  assert.deepEqual(err.removed, [{ date: '2026-12-02', mealTime: 3, mealTimeLabel: 'Dinner', title: 'Lasagne', recipeId: 'r1', kind: 'recipe' }]);
+});
+
 test('clearWeek and schedule validate the range', async () => {
   const { sf } = mockClient({});
   await assert.rejects(sf.clearWeek({ from: '2026-12-10', to: '2026-12-01' }), /must not be after/);
   await assert.rejects(sf.schedule({ from: '2026-01-01', to: '2026-12-31' }), /too long/);
+});
+
+test('the library entry installs every area method on SamsungFood', async () => {
+  const lib = await import('../src/lib.js');
+  for (const m of ['createShoppingList', 'updateRecipe', 'foodSearch', 'addMeal', 'listItems']) {
+    assert.equal(typeof lib.SamsungFood.prototype[m], 'function', m);
+  }
+  // same class and helpers as client.js
+  assert.equal(lib.SamsungFood, SamsungFood);
+  assert.equal(typeof lib.toProtoDate, 'function');
+  assert.equal(typeof lib.GrpcError, 'function');
 });

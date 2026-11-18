@@ -66,7 +66,6 @@ async function shoppingLists(ctx) {
   try {
     const before = arr(await ctx.call('shopping_lists'));
     originalPrimary = before.find((l) => l.isPrimary)?.id ?? null;
-    const cacheBefore = cachedListId();
 
     const created = await ctx.call('shopping_list_create', { name: `${ctx.prefix}-list`, items: ['2 onions', 'milk'], addToRecent: false });
     toDelete.push(created.id);

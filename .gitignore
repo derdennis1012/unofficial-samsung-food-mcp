@@ -7,3 +7,6 @@ schema.json
 foodgraph*.json
 auth.json
 !test/fixtures/schema.json
+*.tgz
+.DS_Store
+*.bak*

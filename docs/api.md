@@ -30,8 +30,9 @@ named `whisk.x.*`, assets live on `cdn.whisk.com`, tracking on
 | `content-type` | `application/grpc-web+proto` |
 | `x-grpc-web` | `1` |
 | `x-user-agent` | `grpc-web-ts/1.0` |
+| `user-agent` | `unofficial-samsung-food-mcp/<version> (+https://github.com/derdennis1012/unofficial-samsung-food-mcp)`, this project, not a browser |
 | `x-whisk-app-name` | `webapp` |
-| `x-whisk-app-version` | `2.88.0` |
+| `x-whisk-app-version` | `2.88.0` (built-in default, override with `SAMSUNG_FOOD_APP_VERSION`) |
 | `x-whisk-device-type` | `Desktop` |
 | `x-whisk-page` | base64 JSON with analytics context (optional) |
 | `request-id` | UUID per call (optional) |

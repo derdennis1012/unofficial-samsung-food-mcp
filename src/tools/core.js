@@ -8,6 +8,44 @@ import { today } from '../client.js';
 import { loginWithCredential, authStatus } from '../session.js';
 import { defineTool, idSchema, idList, dateSchema, mealTimeSchema, shortText, LOCATIONS } from './util.js';
 
+/**
+ * Methods api_call refuses: everything on the login/session service and the methods that change
+ * or delete account credentials. Through a raw call they could take over or destroy the account.
+ */
+const BLOCKED_SERVICE = /(^|\.)AuthAPI\//;
+const BLOCKED_METHOD = /\/(Update(Email|Phone|Password)|CreatePassword|\w*ResetPassword\w*|DeleteMe|Delete(User|Account)\w*|ExchangeSamsungAccountCode)$/;
+
+export function assertRawCallAllowed(method) {
+  if (BLOCKED_SERVICE.test(method) || BLOCKED_METHOD.test(method)) {
+    throw new Error(
+      `api_call refuses ${method}: login, session and account-credential methods (e-mail, phone, password, account deletion) are blocked. Use auth_login / auth_status for the session, and the Samsung Food app for account changes.`
+    );
+  }
+}
+
+/** Keys whose values are always secrets. */
+const SECRET_KEY = /^(access|refresh|id|auth|session|bearer)?token$|^(access|refresh|id|session)Token$|^authCode$|^(new|old|current)?password$|^(new|old|current)Password$|secret|^apiKey$/i;
+/** Context that makes a `code` an auth code rather than e.g. a country or nutrient code. */
+const AUTH_CONTEXT = /auth|token|login|session|credential|otp|verif|password|samsungAccount/i;
+
+/**
+ * Deep copy with secrets replaced by "[redacted]": token/password-like keys always; a string `code`
+ * when it sits in an auth-ish context or looks like an opaque credential (20+ characters).
+ */
+export function redactSecrets(value, context = '') {
+  if (Array.isArray(value)) return value.map((v) => redactSecrets(v, context));
+  if (!value || typeof value !== 'object' || Buffer.isBuffer(value)) return value;
+  const authy = AUTH_CONTEXT.test(context) || Object.keys(value).some((k) => SECRET_KEY.test(k) || /^expiresIn$/.test(k));
+  const out = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (v != null && typeof v !== 'object' && SECRET_KEY.test(k)) out[k] = '[redacted]';
+    else if (k === 'code' && typeof v === 'string' && (authy || v.length >= 20)) out[k] = '[redacted]';
+    else if (v && typeof v === 'object' && !Buffer.isBuffer(v) && SECRET_KEY.test(k)) out[k] = '[redacted]';
+    else out[k] = redactSecrets(v, `${context}.${k}`);
+  }
+  return out;
+}
+
 export const coreTools = [
   defineTool({
     name: 'meal_plan_get',
@@ -83,7 +121,7 @@ export const coreTools = [
     kind: 'destructive',
     idempotent: false,
     description:
-      'Applies a weekly template to the meal plan from a start date. Existing meals are kept; with replace the range is cleared first (existing meals in it are deleted). Returns the resulting plan.',
+      'Applies a weekly template to the meal plan from a start date. Existing meals are kept; with replace the range is cleared first (existing meals in it are deleted). The template is validated before anything is cleared; if applying fails after the clear, the error lists the removed meals so they can be re-added. Returns the resulting plan.',
     schema: z.object({
       templateId: idSchema(),
       startDate: dateSchema().optional().describe('YYYY-MM-DD, default today'),
@@ -306,7 +344,7 @@ export const coreTools = [
     example: { names: ['chicken breast'], location: 'freezer' },
     kind: 'write',
     description:
-      'Adds entries to the pantry. IMPORTANT: for ingredients that can go in the fridge OR the freezer (meat, fish, butter), Samsung Food does NOT set an expiry date on its own - pass location here and the shelf life is computed from the food graph (chicken breast: fridge 2 days, freezer 9 months). Ask food_storage_info first if the storage location is unclear.',
+      'Adds entries to the pantry. IMPORTANT: for ingredients that can go in the fridge OR the freezer (meat, fish, butter), Samsung Food does NOT set an expiry date on its own - pass location here and the shelf life is computed from the food graph (chicken breast: fridge 2 days, freezer 9 months). Ask food_storage_info first if the storage location is unclear. Names that only approximately match a food-graph product (e.g. "oat milk" -> Milk) never get an automatic expiry date; those entries come back with matchedProduct and a warning.',
     schema: z.object({
       names: z.array(shortText('text')).min(1).max(100).describe('e.g. ["chicken breast", "basmati rice"]'),
       location: z.enum(LOCATIONS).optional().describe('fridge | freezer | pantry - applies to all listed ingredients'),
@@ -318,7 +356,7 @@ export const coreTools = [
     example: { name: 'chicken breast' },
     kind: 'read',
     description:
-      'Looks up where an ingredient is stored and how long it keeps there - without creating anything. Returns all possible storage locations with shelf life in days and whether the location is ambiguous. Purely local, no API call.',
+      'Looks up where an ingredient is stored and how long it keeps there - without creating anything. Returns all possible storage locations with shelf life in days and whether the location is ambiguous. exact: false (with a warning) means the name was matched to the closest product, not found as such. Purely local, no API call.',
     schema: z.object({ name: shortText('name', 300).describe('e.g. "chicken breast"') }),
     handler: async (a, sf) => (await sf.storageFor(a.name)) ?? { found: false, name: a.name },
   }),
@@ -371,12 +409,15 @@ export const coreTools = [
     kind: 'destructive',
     idempotent: false,
     description:
-      'Calls any gRPC method directly. Use api_describe first to learn the field names. Write methods change real data.',
+      'Calls any gRPC method directly. Use api_describe first to learn the field names. Write methods change real data. Login/session methods (AuthAPI) and account-credential methods (change e-mail, phone or password, delete the account, Samsung account code exchange) are refused. Secrets in results (tokens, auth codes, passwords) are replaced by "[redacted]".',
     schema: z.object({
       method: z.string().regex(/^[\w.]+\/\w+$/, 'expected package.Service/Method').describe('e.g. "whisk.x.list.v1.ListAPI/GetLists"'),
-      request: z.record(z.any()).optional(),
+      request: z.record(z.string(), z.any()).optional(),
     }),
-    handler: async (a, sf) => sf.call(a.method, a.request ?? {}),
+    handler: async (a, sf) => {
+      assertRawCallAllowed(a.method);
+      return redactSecrets(await sf.call(a.method, a.request ?? {}), a.method);
+    },
   }),
   defineTool({
     name: 'account_info',

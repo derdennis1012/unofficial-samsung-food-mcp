@@ -1,46 +1,76 @@
 {
-  "name": "samsung-food-mcp",
+  "name": "unofficial-samsung-food-mcp",
+  "mcpName": "io.github.derdennis1012/unofficial-samsung-food-mcp",
   "version": "0.1.0",
-  "type": "module",
   "description": "Unofficial MCP server and CLI for Samsung Food (Whisk): meal plan, shopping list, recipes and pantry",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/derdennis1012/samsung-food-mcp.git"
-  },
-  "homepage": "https://github.com/derdennis1012/samsung-food-mcp#readme",
-  "bugs": {
-    "url": "https://github.com/derdennis1012/samsung-food-mcp/issues"
-  },
   "keywords": [
     "mcp",
+    "mcp-server",
+    "model-context-protocol",
     "samsung-food",
     "whisk",
-    "meal-planning"
+    "meal-planning",
+    "shopping-list",
+    "recipes",
+    "cli"
   ],
+  "license": "MIT",
+  "author": "Dennis Bölling",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/derdennis1012/unofficial-samsung-food-mcp.git"
+  },
+  "homepage": "https://github.com/derdennis1012/unofficial-samsung-food-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/derdennis1012/unofficial-samsung-food-mcp/issues"
+  },
+  "type": "module",
+  "main": "./src/lib.js",
+  "exports": {
+    ".": "./src/lib.js",
+    "./package.json": "./package.json"
+  },
   "bin": {
     "sf": "bin/sf.js",
-    "samsung-food-mcp": "src/index.js"
+    "unofficial-samsung-food-mcp": "src/index.js",
+    "sf-api": "src/http/main.js"
   },
   "files": [
     "src",
     "bin",
+    "docs",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "engines": {
     "node": ">=20"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
-    "test": "node --test test/*.test.js",
-    "validate": "node test/validate-har.js",
+    "api": "node src/http/main.js",
+    "check": "npm run lint && npm run docs:tools:check && npm test",
+    "docs:tools": "node scripts/gen-tools-doc.js",
+    "docs:tools:check": "node scripts/gen-tools-doc.js --check",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "mcp": "node src/index.js",
+    "test": "node --test test/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage test/*.test.js",
     "test:live": "node test/live/run.js --live",
-    "test:live:cleanup": "node test/live/run.js --live --cleanup"
+    "test:live:cleanup": "node test/live/run.js --live --cleanup",
+    "validate": "node test/validate-har.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.0",
-    "zod": "^3.23.8"
+    "zod": "^4.6.7"
   },
-  "author": "Dennis Bölling"
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.15.0",
+    "globals": "^17.14.0"
+  }
 }

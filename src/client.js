@@ -10,9 +10,9 @@ import { Codec } from './proto.js';
 import { today, addDays, daysBetween, assertRange } from './dates.js';
 export { today };
 import { GrpcWebTransport, GrpcError } from './grpc.js';
-import { loadAuth, updateAuth, LOGIN_HINT } from './auth.js';
+import { loadAuth, updateAuth, readAuthFile, saveAuth, LOGIN_HINT } from './auth.js';
 import { ensureFreshToken } from './session.js';
-import { storageInfo, expiryFor, locationCode, LOCATION_LABEL, loadGraph } from './foodgraph.js';
+import { storageInfo, expiryFor, locationCode, loadGraph } from './foodgraph.js';
 import { ensureSchema, readSchema, buildSchema, SCHEMA_FILE } from './schema-build.js';
 
 /** Meal slots (from ProvisionAPI/GetDictionaries, dictionary "planned_meals"). */
@@ -174,7 +174,7 @@ export function looksLikeDrift(err, read) {
 
 /** UNAUTHENTICATED token errors become an actionable message. */
 export function withLoginHint(err) {
-  if (err instanceof GrpcError && err.status === 16 && /ERROR_AUTH_TOKEN/.test(err.message)) {
+  if (err instanceof GrpcError && err.status === 16 && (/ERROR_AUTH_TOKEN/.test(err.message) || err.httpStatus === 401)) {
     return new Error(LOGIN_HINT, { cause: err });
   }
   return err;
@@ -243,7 +243,8 @@ export class SamsungFood {
     try {
       return this.codec.decodeResponse(method, body);
     } catch (err) {
-      throw new SchemaDriftError(`Could not decode the response of ${method}: ${err.message}`, { sent: !read });
+      const hint = read ? '' : ' The write was probably applied; check the current state before retrying.';
+      throw new SchemaDriftError(`Could not decode the response of ${method}: ${err.message}.${hint}`, { sent: !read });
     }
   }
 
@@ -511,17 +512,44 @@ export class SamsungFood {
   /**
    * Applies a template to the plan starting at `startDate`. Existing meals
    * stay in place - with `replace` the date range is cleared first.
+   * The template is always loaded first, so an unknown or empty template never clears anything.
+   * If the apply fails after a clear, the error lists the removed meals (`err.removed`) so they can be restored.
    */
   async applyTemplate(templateId, { startDate = today(), replace = false, days } = {}) {
+    const tpl = await this.template(templateId);
+    if (!tpl.days.length) {
+      throw new Error(`Template ${templateId} was not found or has no meals; nothing was changed.`);
+    }
     // The template covers orderDay 0..max, gaps included, so clear max+1 days (not the number of filled days).
-    const templateSpan = replace && days === undefined ? Math.max(0, ...(await this.template(templateId)).days.map((d) => d.orderDay)) + 1 : null;
-    if (replace) await this.clearWeek({ from: startDate, days: days ?? templateSpan });
-    await this.call('whisk.x.mealplan.v2.MealPlanV2API/ApplyMealPlanTemplate', {
-      mealPlanId: await this.mealPlanId(),
-      mealPlanTemplateId: templateId,
-      startDate: toProtoDate(startDate),
-    });
-    return this.schedule({ from: startDate, days: days ?? templateSpan ?? 7 });
+    const span = days ?? Math.max(0, ...tpl.days.map((d) => d.orderDay)) + 1;
+    let removed = null;
+    if (replace) {
+      const before = await this.schedule({ from: startDate, days: span });
+      removed = before.days.flatMap((d) =>
+        d.meals.map((m) => ({ date: d.date, mealTime: m.mealTime, mealTimeLabel: m.mealTimeLabel, title: m.title, recipeId: m.recipeId, kind: m.kind }))
+      );
+      await this.clearWeek({ from: startDate, days: span });
+    }
+    try {
+      await this.call('whisk.x.mealplan.v2.MealPlanV2API/ApplyMealPlanTemplate', {
+        mealPlanId: await this.mealPlanId(),
+        mealPlanTemplateId: templateId,
+        startDate: toProtoDate(startDate),
+      });
+    } catch (err) {
+      if (!removed) throw err;
+      const list = removed.length
+        ? removed.map((m) => `${m.date} ${m.mealTimeLabel ?? m.mealTime}: ${m.title}${m.recipeId ? ` (recipe ${m.recipeId})` : ''}`).join('; ')
+        : 'none (the range was empty)';
+      const e = new Error(
+        `Applying template ${templateId} failed after the range ${startDate} + ${span} days was cleared (${err.message}). ` +
+          `Removed meals: ${list}. Re-add them with meal_plan_add / addMeal.`,
+        { cause: err }
+      );
+      e.removed = removed;
+      throw e;
+    }
+    return this.schedule({ from: startDate, days: days ?? (replace ? span : 7) });
   }
 
   /** Clears a date range of the meal plan. */
@@ -591,70 +619,90 @@ export class SamsungFood {
     }));
   }
 
+  /**
+   * The primary list's id, cached for the lifetime of this client only: the primary list can be
+   * changed or deleted elsewhere, so it is never persisted (see withList for the re-validation).
+   */
   async primaryListId() {
     if (this._cache.listId) return this._cache.listId;
-    const cached = loadAuth()?.listId;
-    if (cached) {
-      this._cache.listId = cached;
-      return cached;
-    }
+    forgetPersistedListId();
     const lists = await this.lists();
     if (!lists.length) throw new Error('No shopping list found');
     const primary = lists.find((l) => l.isPrimary) ?? lists[0];
     this._cache.listId = primary.id;
-    updateAuth({ listId: primary.id });
     return primary.id;
+  }
+
+  /**
+   * Runs fn(listId). Without an explicit listId the primary list is used; if the server answers
+   * NOT_FOUND for a cached primary id, the lists are fetched once more and fn is retried.
+   */
+  async withList(listId, fn) {
+    if (listId) return fn(listId);
+    const id = await this.primaryListId();
+    try {
+      return await fn(id);
+    } catch (err) {
+      if (!(err instanceof GrpcError && err.status === 5)) throw err;
+      delete this._cache.listId;
+      const fresh = await this.primaryListId();
+      if (fresh === id) throw err; // the list exists: NOT_FOUND was about something else
+      return fn(fresh);
+    }
   }
 
   /** Full list including items. */
   async listItems(listId) {
-    const id = listId ?? (await this.primaryListId());
-    const res = await this.call('whisk.x.list.v1.ListAPI/GetList', { listId: id });
-    return {
-      listId: id,
-      name: res.list?.name ?? null,
-      sync: res.sync ?? null,
-      items: (res.content?.items ?? []).map(normalizeListItem),
-      groups: (res.content?.groups ?? []).map(normalizeListItem),
-      recipes: (res.content?.recipes ?? []).map((r) => ({
-        id: r.recipe?.id ?? null,
-        name: r.recipe?.name ?? null,
-      })),
-    };
+    return this.withList(listId, async (id) => {
+      const res = await this.call('whisk.x.list.v1.ListAPI/GetList', { listId: id });
+      return {
+        listId: id,
+        name: res.list?.name ?? null,
+        sync: res.sync ?? null,
+        items: (res.content?.items ?? []).map(normalizeListItem),
+        groups: (res.content?.groups ?? []).map(normalizeListItem),
+        recipes: (res.content?.recipes ?? []).map((r) => ({
+          id: r.recipe?.id ?? null,
+          name: r.recipe?.name ?? null,
+        })),
+      };
+    });
   }
 
   /** Create free-text items ("2 onions", "milk"). */
   async addListItems(texts, { listId, checked = false, addToRecent = true } = {}) {
-    const id = listId ?? (await this.primaryListId());
-    const arr = Array.isArray(texts) ? texts : [texts];
-    const res = await this.call('whisk.x.list.v1.ListAPI/SyncItems', {
-      listId: id,
-      lastSync: Date.now(),
-      items: arr.map((text) => ({
-        create: { raw: { text: String(text) }, checked, addToRecent },
-      })),
+    return this.withList(listId, async (id) => {
+      const arr = Array.isArray(texts) ? texts : [texts];
+      const res = await this.call('whisk.x.list.v1.ListAPI/SyncItems', {
+        listId: id,
+        lastSync: Date.now(),
+        items: arr.map((text) => ({
+          create: { raw: { text: String(text) }, checked, addToRecent },
+        })),
+      });
+      return summarizeSync(res);
     });
-    return summarizeSync(res);
   }
 
   /** Put all ingredients of a recipe on the list. */
   async addRecipeToList(recipeId, { listId, servings, system = 'metric' } = {}) {
-    const id = listId ?? (await this.primaryListId());
-    const res = await this.call('whisk.x.list.v1.ListAPI/SyncItems', {
-      listId: id,
-      lastSync: Date.now(),
-      recipes: [
-        {
-          add: {
-            recipeId,
-            ...(servings ? { scale: { scale: servings } } : {}),
-            measurementSystem: MEASUREMENT_SYSTEM[system] ?? 1,
+    return this.withList(listId, async (id) => {
+      const res = await this.call('whisk.x.list.v1.ListAPI/SyncItems', {
+        listId: id,
+        lastSync: Date.now(),
+        recipes: [
+          {
+            add: {
+              recipeId,
+              ...(servings ? { scale: { scale: servings } } : {}),
+              measurementSystem: MEASUREMENT_SYSTEM[system] ?? 1,
+            },
           },
-        },
-      ],
-      combineServings: true,
+        ],
+        combineServings: true,
+      });
+      return summarizeSync(res);
     });
-    return summarizeSync(res);
   }
 
   async checkListItem(itemId, checked = true, opts = {}) {
@@ -666,28 +714,30 @@ export class SamsungFood {
    * the update, so the current list is read first.
    */
   async checkListItems(itemIds, checked = true, { listId } = {}) {
-    const id = listId ?? (await this.primaryListId());
-    const current = await this.call('whisk.x.list.v1.ListAPI/GetList', { listId: id });
-    const byId = new Map((current.content?.items ?? []).map((e) => [e.id, e]));
-    const missing = itemIds.filter((i) => !byId.has(i));
-    if (missing.length) throw new Error(`Item(s) not found on the list: ${missing.join(', ')}`);
-    const res = await this.call('whisk.x.list.v1.ListAPI/SyncItems', {
-      listId: id,
-      lastSync: Date.now(),
-      items: itemIds.map((i) => ({ update: { id: i, item: byId.get(i).item, checked } })),
+    return this.withList(listId, async (id) => {
+      const current = await this.call('whisk.x.list.v1.ListAPI/GetList', { listId: id });
+      const byId = new Map((current.content?.items ?? []).map((e) => [e.id, e]));
+      const missing = itemIds.filter((i) => !byId.has(i));
+      if (missing.length) throw new Error(`Item(s) not found on the list: ${missing.join(', ')}`);
+      const res = await this.call('whisk.x.list.v1.ListAPI/SyncItems', {
+        listId: id,
+        lastSync: Date.now(),
+        items: itemIds.map((i) => ({ update: { id: i, item: byId.get(i).item, checked } })),
+      });
+      return summarizeSync(res);
     });
-    return summarizeSync(res);
   }
 
   async deleteListItems(itemIds, { listId } = {}) {
-    const id = listId ?? (await this.primaryListId());
-    const arr = Array.isArray(itemIds) ? itemIds : [itemIds];
-    const res = await this.call('whisk.x.list.v1.ListAPI/SyncItems', {
-      listId: id,
-      lastSync: Date.now(),
-      items: arr.map((i) => ({ delete: { id: i } })),
+    return this.withList(listId, async (id) => {
+      const arr = Array.isArray(itemIds) ? itemIds : [itemIds];
+      const res = await this.call('whisk.x.list.v1.ListAPI/SyncItems', {
+        listId: id,
+        lastSync: Date.now(),
+        items: arr.map((i) => ({ delete: { id: i } })),
+      });
+      return summarizeSync(res);
     });
-    return summarizeSync(res);
   }
 
   /* ------------------------------------------------------------ Recipes */
@@ -903,7 +953,7 @@ export class SamsungFood {
       // Only compute if the storage location is known: either stated explicitly
       // or unambiguous in the graph. For chicken breast (fridge OR freezer)
       // the date stays empty - guessing would be worse than nothing here.
-      if (!item.expiryDate && (loc || info?.ambiguous === false)) {
+      if (!item.expiryDate && info?.exact && (loc || info.ambiguous === false)) {
         const expiry = expiryFor(item.name, loc ?? item.locationCode);
         if (expiry) patch.expiryDate = expiry;
       }
@@ -911,7 +961,13 @@ export class SamsungFood {
       if (patch.location === undefined && patch.expiryDate === undefined) continue;
       Object.assign(item, await this.updatePantryItem(patch));
     }
-    return created.map((i) => ({ ...i, storage: storageInfo(i.name) }));
+    return created.map((i) => {
+      const storage = storageInfo(i.name);
+      // A guessed product never gets an automatic expiry date; say which product was guessed.
+      return storage && !storage.exact
+        ? { ...i, storage, matchedProduct: storage.product, warning: `${storage.warning} No expiry date was set automatically.` }
+        : { ...i, storage };
+    });
   }
 
   /** Where does an ingredient belong and how long does it keep there? (purely local) */
@@ -960,6 +1016,15 @@ export class SamsungFood {
     const ids = Array.isArray(itemIds) ? itemIds : [itemIds];
     await this.call('whisk.x.foodlist.v1.FoodlistAPI/DeleteItems', { itemIds: ids });
     return { deleted: ids };
+  }
+}
+
+/** Older versions persisted the primary list id in auth.json forever; drop that stale value. */
+function forgetPersistedListId() {
+  const file = readAuthFile();
+  if (file && 'listId' in file) {
+    const { listId: _stale, ...rest } = file;
+    saveAuth(rest);
   }
 }
 

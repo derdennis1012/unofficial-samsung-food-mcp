@@ -1,0 +1,60 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not paste tokens, cookies, `auth.json` content, Authorization headers, cURL commands or HAR files.** They give full access to your Samsung Food account. Redact account names and IDs you do not want to share.
+        If this is a security problem, use [private vulnerability reporting](https://github.com/derdennis1012/unofficial-samsung-food-mcp/security/advisories/new) instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead? Include the exact command or tool call and the full error message.
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: How are you using it?
+      options:
+        - MCP server
+        - CLI (sf)
+        - Library
+        - Local HTTP API
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: MCP client (if applicable)
+      placeholder: Claude Desktop, Claude Code, Cursor, VS Code, ...
+  - type: textarea
+    id: status
+    attributes:
+      label: Output of `sf status`
+      description: Redact anything personal first. This never contains the token itself, but check before posting.
+      render: json
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: 0.1.0 or a commit hash
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Node.js version and operating system
+      placeholder: Node 22.11, macOS 15 / Windows 11 / Ubuntu 24.04
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I ran `sf schema update` and tried again
+        - label: I removed all tokens, cookies and personal data from this report
+          required: true

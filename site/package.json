@@ -1,0 +1,28 @@
+{
+  "name": "samsung-food-mcp-site",
+  "private": true,
+  "type": "module",
+  "description": "Project website for samsung-food-mcp (GitHub Pages)",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs --watch",
+    "serve": "node scripts/serve.mjs --port 4327",
+    "sync-tools": "node scripts/sync-tools.mjs",
+    "brand": "node scripts/brand.mjs",
+    "render": "node scripts/render.mjs",
+    "check": "node scripts/check.mjs"
+  },
+  "devDependencies": {
+    "@fontsource/instrument-sans": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/schibsted-grotesk": "^5.3.0",
+    "@tailwindcss/cli": "^4.3.5",
+    "axe-core": "^4.14.1",
+    "opentype.js": "^2.0.0",
+    "playwright": "^1.65.1",
+    "tailwindcss": "^4.3.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

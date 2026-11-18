@@ -1,0 +1,599 @@
+{
+  "generatedFrom": "src/tools/*.js",
+  "totals": {
+    "all": 89,
+    "read": 41,
+    "write": 32,
+    "destructive": 16
+  },
+  "areas": [
+    {
+      "id": "mealplan",
+      "label": "Meal plan",
+      "tools": [
+        {
+          "name": "meal_plan_get",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows the meal plan for a date range, including planned calories per day and unscheduled meals."
+        },
+        {
+          "name": "meal_plan_add",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Schedules a recipe as a meal."
+        },
+        {
+          "name": "meal_plan_remove",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Removes one or more meals from the meal plan (IDs from meal_plan_get)."
+        },
+        {
+          "name": "meal_plan_move",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Moves a scheduled meal to a different date or slot."
+        },
+        {
+          "name": "meal_plan_clear",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Clears a date range of the meal plan."
+        },
+        {
+          "name": "meal_plan_previously_planned",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows meals that have been on the plan before - a pool for a new week without having to search again."
+        },
+        {
+          "name": "meal_plan_note_add",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Adds a free-text note to a day of the meal plan."
+        },
+        {
+          "name": "meal_plan_note_update",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Replaces date and text of an existing note."
+        },
+        {
+          "name": "meal_plan_note_delete",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Deletes a meal plan note."
+        },
+        {
+          "name": "meal_plan_note_undelete",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Restores a note deleted with meal_plan_note_delete (use the noteId you deleted)."
+        },
+        {
+          "name": "meal_plan_meal_update",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Updates the content entry of a planned meal."
+        },
+        {
+          "name": "meal_plan_settings_get",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows the settings of the meal plan: first day of the week and sharing mode (private or public) with the number of collaborators."
+        },
+        {
+          "name": "meal_plan_settings_update",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Sets the first day of the week of the meal plan (the only meal plan setting the API has)."
+        },
+        {
+          "name": "meal_plan_share_link",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Generates an invite link for the meal plan and returns it."
+        }
+      ]
+    },
+    {
+      "id": "templates",
+      "label": "Weekly templates",
+      "tools": [
+        {
+          "name": "meal_plan_templates",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Lists your own weekly templates."
+        },
+        {
+          "name": "meal_plan_save_template",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Saves a date range of the meal plan as a weekly template so it can be applied to any week later."
+        },
+        {
+          "name": "meal_plan_apply_template",
+          "kind": "destructive",
+          "idempotent": false,
+          "summary": "Applies a weekly template to the meal plan from a start date."
+        },
+        {
+          "name": "meal_plan_delete_template",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Deletes your own weekly templates."
+        },
+        {
+          "name": "meal_plan_template_list",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Lists the curated public meal plan templates from Samsung Food (not your own - those are in meal_plan_templates)."
+        },
+        {
+          "name": "meal_plan_template_update",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Renames or re-describes one of your own templates (id from meal_plan_templates or meal_plan_save_template)."
+        }
+      ]
+    },
+    {
+      "id": "lists",
+      "label": "Shopping lists",
+      "tools": [
+        {
+          "name": "shopping_list_get",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows the shopping list with open and completed items, grouped by category."
+        },
+        {
+          "name": "shopping_list_add",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Adds free-text items to the shopping list, e.g."
+        },
+        {
+          "name": "shopping_list_add_recipe",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Copies all ingredients of a recipe to the shopping list and merges quantities."
+        },
+        {
+          "name": "shopping_list_update",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Checks items off, undoes that, or deletes them (IDs from shopping_list_get)."
+        },
+        {
+          "name": "shopping_lists",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Lists all shopping lists of the account, including shared lists."
+        },
+        {
+          "name": "shopping_list_create",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Creates a new (non-primary) shopping list, optionally filled with free-text items like \"2 onions\"."
+        },
+        {
+          "name": "shopping_list_rename",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Renames a shopping list."
+        },
+        {
+          "name": "shopping_list_delete",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Deletes a shopping list with all its items; this cannot be undone and affects everyone the list is shared with."
+        },
+        {
+          "name": "shopping_list_copy",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Copies a shopping list including its items into a new list (named \"Copy of <name>\", localized by the server)."
+        },
+        {
+          "name": "shopping_list_set_primary",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Makes a shopping list the primary one."
+        },
+        {
+          "name": "shopping_list_recent_items",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Items recently used on any shopping list (the suggestion pool of the app)."
+        },
+        {
+          "name": "shopping_list_favorites",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Favorite shopping items (quick-add pool)."
+        },
+        {
+          "name": "shopping_list_favorites_modify",
+          "kind": "destructive",
+          "idempotent": false,
+          "summary": "Creates, updates or deletes favorite shopping items in one call."
+        },
+        {
+          "name": "shopping_list_share_link",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Generates a share link for a shopping list and returns it."
+        }
+      ]
+    },
+    {
+      "id": "recipes",
+      "label": "Recipes",
+      "tools": [
+        {
+          "name": "recipe_search",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Searches your own saved recipes across all collections."
+        },
+        {
+          "name": "recipe_discover",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Returns recipe suggestions from the global catalog for browsing."
+        },
+        {
+          "name": "recipe_get",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Fetches a recipe with ingredients, instructions and nutrition."
+        },
+        {
+          "name": "recipe_similar",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Finds recipes similar to a given recipe."
+        },
+        {
+          "name": "recipe_import_url",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Extracts a recipe from any website and saves it to the account."
+        },
+        {
+          "name": "recipe_create",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Creates a custom recipe."
+        },
+        {
+          "name": "recipe_delete",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Deletes a custom recipe."
+        },
+        {
+          "name": "recipe_update",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Changes fields of one of YOUR OWN recipes (created with recipe_create or imported); everything not passed stays as it is."
+        },
+        {
+          "name": "recipe_rate",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Likes or dislikes a recipe (Samsung Food has a thumbs up/down, no stars)."
+        },
+        {
+          "name": "recipe_review_post",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Posts your written review of a recipe with optional tags and a like/dislike."
+        },
+        {
+          "name": "recipe_review_get",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows a review."
+        },
+        {
+          "name": "recipe_review_delete",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Deletes YOUR review/rating of a recipe (only your own can be deleted)."
+        },
+        {
+          "name": "recipe_autocomplete",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Suggests search terms for a prefix, as the search box of the app does."
+        },
+        {
+          "name": "recipe_categories",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Lists the search categories of the explore page (id, title, image), e.g."
+        },
+        {
+          "name": "recipe_smart_collection",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Smart collections are the automatic recipe lists of the app: made_it, recently_viewed, planned and my_recipes."
+        },
+        {
+          "name": "recipe_recommended",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "The personalized recommendation feed of the home screen, recipes only (id, name, image, who posted it)."
+        },
+        {
+          "name": "recipe_health_recommend",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Meal suggestions per day and meal slot that fit the calorie and nutrition goals of the account (see account_info), with the reasons (caloriesMacros, dqsAhei, foodList, mlRerank and their weight)."
+        },
+        {
+          "name": "recipe_health_alternatives",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "More health-based suggestions for ONE meal slot of one day (the \"show other options\" of the recommendations)."
+        },
+        {
+          "name": "recipe_dish_lookup",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Dish pages: generic dishes (burger, bread, ...) with typical nutrition per 100 g."
+        },
+        {
+          "name": "recipe_more_from_user",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Other recipes by the same author as a given recipe."
+        },
+        {
+          "name": "recipe_recent_queries",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Your recent recipe searches, newest first."
+        },
+        {
+          "name": "recipe_recent_query_delete",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Removes one entry from your recent recipe searches (query = the exact text from recipe_recent_queries)."
+        }
+      ]
+    },
+    {
+      "id": "collections",
+      "label": "Collections",
+      "tools": [
+        {
+          "name": "collections_list",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Lists the recipe collections of the account."
+        },
+        {
+          "name": "collection_recipes",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows the recipes in a collection."
+        },
+        {
+          "name": "collection_get",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Details of one recipe collection: name, recipe count, accessMode (private | public) and your role (owner | none)."
+        },
+        {
+          "name": "collection_create",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Creates an empty recipe collection."
+        },
+        {
+          "name": "collection_update",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Renames a collection and/or switches it between private and public."
+        },
+        {
+          "name": "collection_delete",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Deletes a recipe collection."
+        },
+        {
+          "name": "collection_copy",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Copies a collection into a new one (the server names the copy)."
+        },
+        {
+          "name": "collection_add_recipes",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Adds recipes to a collection (a recipe can be in several collections)."
+        },
+        {
+          "name": "collection_remove_recipes",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Removes recipes from a collection."
+        },
+        {
+          "name": "collection_share_link",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Generates a share link for a recipe collection and returns it."
+        }
+      ]
+    },
+    {
+      "id": "pantry",
+      "label": "Pantry",
+      "tools": [
+        {
+          "name": "pantry_get",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows the pantry with storage location, expiry date and daysLeft (negative = expired)."
+        },
+        {
+          "name": "pantry_add",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Adds entries to the pantry."
+        },
+        {
+          "name": "pantry_update",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Changes the expiry date, name or storage location of a pantry entry."
+        },
+        {
+          "name": "pantry_consume",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Marks pantry entries as consumed, undoes that, or deletes them entirely."
+        }
+      ]
+    },
+    {
+      "id": "food",
+      "label": "Food and nutrition",
+      "tools": [
+        {
+          "name": "food_storage_info",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Looks up where an ingredient is stored and how long it keeps there - without creating anything."
+        },
+        {
+          "name": "food_search",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Searches the food graph (generic foods and ingredients, not recipes)."
+        },
+        {
+          "name": "food_get",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows one food: its portion sizes (name such as \"medium\"/\"large\", grams) and the nutrition per 100 g (Edamam codes like ENERC_KCAL, FAT, CHOCDF, PROCNT)."
+        },
+        {
+          "name": "food_autocomplete",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Suggests food names for a prefix (e.g."
+        },
+        {
+          "name": "food_product_search",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Searches the Foodpedia product encyclopedia (ingredients incl."
+        },
+        {
+          "name": "food_product_get",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows a Foodpedia product: category, description, storage location, glycemic index, nutrition per 100 g, grams per unit (piece, slice, ...), suitable diets, tips, substitutes and a few linked recipes."
+        },
+        {
+          "name": "food_product_popular",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Lists popular Foodpedia products (turmeric, ...)."
+        },
+        {
+          "name": "nutrition_analyze",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Parses free-text ingredient lines such as \"2 cups milk\" or \"400 g hokkaido pumpkin\" into the normalized food (canonical name), category, quantity and unit."
+        },
+        {
+          "name": "foodlog_add_from_meal_plan",
+          "kind": "write",
+          "idempotent": false,
+          "summary": "Logs planned meals as eaten in the food log (so they count towards your nutrition tracking)."
+        },
+        {
+          "name": "foodlog_delete",
+          "kind": "destructive",
+          "idempotent": true,
+          "summary": "Removes entries from the food log (the meal stays in the meal plan)."
+        }
+      ]
+    },
+    {
+      "id": "account",
+      "label": "Account",
+      "tools": [
+        {
+          "name": "account_info",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows your own account with nutrition goals and settings."
+        },
+        {
+          "name": "auth_status",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows whether a Samsung Food login is stored, when it expires and when it was last renewed."
+        },
+        {
+          "name": "auth_login",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Logs in with a browser session: validates the value, renews it to learn the expiry and stores it."
+        },
+        {
+          "name": "account_settings_get",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows the preferences of the account in a readable form: diets, avoidances, cuisines, cooking level, household, units, body data, nutrition goals, meal planning preferences and notification switches."
+        },
+        {
+          "name": "account_settings_update",
+          "kind": "write",
+          "idempotent": true,
+          "summary": "Changes preferences of the account."
+        },
+        {
+          "name": "account_usage",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows how many uses are left of a limited feature: mealplan_template_collections (curated meal plan templates) or hr_tailored_plan (tailored plan)."
+        }
+      ]
+    },
+    {
+      "id": "raw",
+      "label": "Raw API access",
+      "tools": [
+        {
+          "name": "api_methods",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Lists the available gRPC methods of the Samsung Food API, optionally filtered by substring."
+        },
+        {
+          "name": "api_describe",
+          "kind": "read",
+          "idempotent": true,
+          "summary": "Shows the request and response fields of a gRPC method so that api_call can be used correctly."
+        },
+        {
+          "name": "api_call",
+          "kind": "destructive",
+          "idempotent": false,
+          "summary": "Calls any gRPC method directly."
+        }
+      ]
+    }
+  ]
+}

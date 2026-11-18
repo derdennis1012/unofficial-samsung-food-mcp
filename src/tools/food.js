@@ -10,6 +10,7 @@ const cursorSchema = () => z.string().min(1).max(4000).describe('nextCursor of t
 const languageSchema = () =>
   z.string().regex(/^[a-z]{2}$/, 'two-letter language code such as en or de').optional().describe('Two-letter language code, default: the configured locale');
 const PRODUCT_ID = () =>
+  // eslint-disable-next-line no-control-regex -- intentional: reject control characters
   z.string().trim().min(1).max(200).regex(/^[^\x00-\x1f]+$/, 'product IDs are canonical names such as "BANANA"').describe('Product ID (canonical name, upper case) from food_product_search or food_product_popular');
 
 export const tools = [

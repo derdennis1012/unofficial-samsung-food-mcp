@@ -25,6 +25,10 @@ export async function startMcp() {
     env: { ...process.env },
     stderr: 'pipe',
   });
+  // Drain the server's stderr (a full pipe would block it); show it with SF_LIVE_VERBOSE=1.
+  transport.stderr?.on('data', (chunk) => {
+    if (process.env.SF_LIVE_VERBOSE) process.stderr.write(chunk);
+  });
   const client = new Client({ name: 'samsung-food-live-test', version: '0' });
   await client.connect(transport);
 
