@@ -48,7 +48,7 @@ async function shoot(html, { width, height, file, scale = 1 }) {
 
 /* ------------------------------------------------------------------ brand rasters */
 const iconSvg = (size, { pad = 0 } = {}) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-pad} ${-pad} ${32 + pad * 2} ${32 + pad * 2}" width="${size}" height="${size}" style="display:block">${pad ? `<rect x="${-pad}" y="${-pad}" width="${32 + pad * 2}" height="${32 + pad * 2}" fill="${COLORS.herbDeep}"/>` : ''}${markInner()}</svg>`;
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-pad} ${-pad} ${32 + pad * 2} ${32 + pad * 2}" width="${size}" height="${size}" style="display:block">${pad ? `<rect x="${-pad}" y="${-pad}" width="${32 + pad * 2}" height="${32 + pad * 2}" fill="${COLORS.clayDeep}"/>` : ''}${markInner()}</svg>`;
 
 const wordmark = (size, muted = 'text-muted') => `<span class="font-display tracking-[-0.02em]" style="font-size:${size}px"><span class="${muted}">unofficial</span> <span class="font-semibold">Samsung Food MCP</span></span>`;
 
@@ -160,7 +160,7 @@ ${K('Sun 2026-11-22')} ${P('– 760 kcal')}
     basmati rice  2027-05-30   ${P('[8c02dc]')}`],
   'sf-storage': ['sf storage', prompt('sf storage "chicken breast"') + `Chicken breast  (MEATS AND SEAFOOD)
 
-  Fridge              2 days   (1–2 Days) <span class="text-term-green">←  default</span>
+  Fridge              2 days   (1–2 Days) <span class="text-term-accent">←  default</span>
   Freezer           270 days   (9–9 Months)
 
   ${P('Multiple storage locations - Samsung Food does not set an expiry date on its own here.')}

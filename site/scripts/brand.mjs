@@ -2,9 +2,9 @@
 // render.mjs; run directly (`node scripts/brand.mjs`) to regenerate the SVG masters in
 // ../assets/brand/.
 //
-// The mark: a 2x2 week grid on a deep herb tile. Three cells are open slots, the fourth holds
-// a round tomato-red "dish" that a tool call has just planned. Original geometry, no
-// third-party shapes, no Samsung colours.
+// The mark: a 2x2 week grid on a deep espresso tile. Three cells are open slots, the fourth holds
+// a round clay-orange "dish" that a tool call has just planned. Original geometry, no
+// third-party shapes, no Samsung colours (clay orange sits at ~29 degrees hue, well away from Samsung Food's coral).
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,9 +17,10 @@ export const COLORS = {
   paper2: '#F3EEE4',
   muted: '#6B665B',
   line: '#E3DCCD',
-  herb: '#2E6A4B',
-  herbDeep: '#12291F',
-  mutedOnDark: '#A9B8AE',
+  clay: '#CF6A17',
+  clayInk: '#9E4A08',
+  clayDeep: '#2B1A10',
+  mutedOnDark: '#CDBBAA',
   tomato: '#E0482D',
   saffron: '#E8A53A',
   white: '#FFFFFF',
@@ -30,7 +31,7 @@ const p2 = G.off + G.cell + G.gap;
 const dotC = p2 + G.cell / 2;
 
 /** Inner SVG markup of the mark in a 32x32 box. */
-export function markInner({ tile = COLORS.herbDeep, cell = COLORS.paper, dot = COLORS.tomato } = {}) {
+export function markInner({ tile = COLORS.clayDeep, cell = COLORS.paper, dot = COLORS.clay } = {}) {
   const sq = (x, y) => `<rect x="${x}" y="${y}" width="${G.cell}" height="${G.cell}" rx="${G.cellR}" fill="${cell}"/>`;
   return [
     `<rect width="${G.size}" height="${G.size}" rx="${G.r}" fill="${tile}"/>`,
@@ -110,7 +111,7 @@ export async function logoSvg({ text = COLORS.ink, textMuted = COLORS.muted, mar
 async function main() {
   const dir = fileURLToPath(new URL('../../assets/brand/', import.meta.url));
   fs.mkdirSync(dir, { recursive: true });
-  const onDark = { tile: COLORS.paper, cell: COLORS.herbDeep, dot: COLORS.tomato };
+  const onDark = { tile: COLORS.paper, cell: COLORS.clayDeep, dot: COLORS.clay };
   const light = await logoSvg();
   const files = {
     'mark.svg': markSvg(),
