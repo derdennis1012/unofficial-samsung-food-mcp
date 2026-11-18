@@ -3,7 +3,7 @@
  * food log). Installed onto SamsungFood.prototype by ./index.js.
  */
 
-import { tidyNumber } from '../client.js';
+import { tidyNumber } from '../core/client.js';
 
 const FOOD_API = 'whisk.x.food.v1.FoodAPI/';
 const PEDIA_API = 'whisk.x.foodpedia.v1.FoodpediaAPI/';

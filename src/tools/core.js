@@ -4,8 +4,8 @@
  */
 
 import { z } from 'zod';
-import { today } from '../client.js';
-import { loginWithCredential, authStatus } from '../session.js';
+import { today } from '../core/client.js';
+import { loginWithCredential, authStatus } from '../core/session.js';
 import { defineTool, idSchema, idList, dateSchema, mealTimeSchema, shortText, LOCATIONS } from './util.js';
 
 /**

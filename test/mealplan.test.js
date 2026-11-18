@@ -2,8 +2,8 @@ import './setup.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../src/api/index.js';
-import { SamsungFood } from '../src/client.js';
-import { readSchema } from '../src/schema-build.js';
+import { SamsungFood } from '../src/core/client.js';
+import { readSchema } from '../src/core/schema-build.js';
 import { tools } from '../src/tools/mealplan.js';
 
 const schema = readSchema();

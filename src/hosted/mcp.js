@@ -7,10 +7,10 @@ import { z } from 'zod';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { callTool, listTools } from '../server.js';
+import { callTool, listTools } from '../mcp/server.js';
 import { TOOLS } from '../tools/index.js';
 import { defineTool } from '../tools/util.js';
-import { LOGIN_HINT } from '../auth.js';
+import { LOGIN_HINT } from '../core/auth.js';
 
 /** Not offered by the hosted connector: raw API access and the local login/status tools. */
 export const HOSTED_EXCLUDED = /^(api_|auth_)/;

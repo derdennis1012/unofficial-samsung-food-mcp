@@ -1,8 +1,8 @@
 import './setup.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SamsungFood, GrpcError } from '../src/client.js';
-import { readSchema } from '../src/schema-build.js';
+import { SamsungFood, GrpcError } from '../src/core/client.js';
+import { readSchema } from '../src/core/schema-build.js';
 
 const FL = 'whisk.x.foodlist.v1.FoodlistAPI/';
 const LIST = 'whisk.x.list.v1.ListAPI/';

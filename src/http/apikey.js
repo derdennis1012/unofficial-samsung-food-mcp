@@ -6,8 +6,8 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { CONFIG_DIR } from '../auth.js';
-import { writeFileAtomic } from '../fsutil.js';
+import { CONFIG_DIR } from '../core/auth.js';
+import { writeFileAtomic } from '../core/fsutil.js';
 
 export const API_KEY_FILE = path.join(CONFIG_DIR, 'api-key');
 

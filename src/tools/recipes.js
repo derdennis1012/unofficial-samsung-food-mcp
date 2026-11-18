@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import { today } from '../client.js';
+import { today } from '../core/client.js';
 import { defineTool, idSchema, dateSchema, mealTimeSchema, shortText, limitSchema } from './util.js';
 
 const cursorSchema = () =>

@@ -1,9 +1,9 @@
 import './setup.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { GrpcWebTransport, GrpcError, TransportError, encodeFrame, isRetryable } from '../src/grpc.js';
-import { SamsungFood, isReadMethod, looksLikeDrift, SchemaDriftError } from '../src/client.js';
-import { Codec } from '../src/proto.js';
+import { GrpcWebTransport, GrpcError, TransportError, encodeFrame, isRetryable } from '../src/core/grpc.js';
+import { SamsungFood, isReadMethod, looksLikeDrift, SchemaDriftError } from '../src/core/client.js';
+import { Codec } from '../src/core/proto.js';
 
 /* ---- helpers */
 
@@ -207,8 +207,8 @@ test('codec round-trips scalars, repeated, nested and negative numbers', () => {
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { ensureSchema, readSchema } from '../src/schema-build.js';
-import { writeFileAtomic } from '../src/fsutil.js';
+import { ensureSchema, readSchema } from '../src/core/schema-build.js';
+import { writeFileAtomic } from '../src/core/fsutil.js';
 
 const staleSchemaFile = () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sf-schema-'));
@@ -263,7 +263,7 @@ test('writeFileAtomic leaves no temp files and replaces the content', () => {
 
 /* ---- response framing and Retry-After */
 
-import { decodeFrames, parseRetryAfter } from '../src/grpc.js';
+import { decodeFrames, parseRetryAfter } from '../src/core/grpc.js';
 
 test('responses without a trailer, or with truncated frames, are errors (reads retry them)', async () => {
   const noTrailer = () => new Response(encodeFrame(Buffer.from([1, 2, 3])), { status: 200 });

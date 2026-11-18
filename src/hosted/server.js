@@ -18,12 +18,12 @@
 
 import fs from 'node:fs';
 import http from 'node:http';
-import { SamsungFood } from '../client.js';
-import { memoryTokenStore, LOGIN_HINT } from '../auth.js';
-import { ensureFreshToken } from '../session.js';
-import { GrpcError, GrpcWebTransport } from '../grpc.js';
-import { ensureSchema, buildSchema } from '../schema-build.js';
-import { VERSION } from '../version.js';
+import { SamsungFood } from '../core/client.js';
+import { memoryTokenStore, LOGIN_HINT } from '../core/auth.js';
+import { ensureFreshToken } from '../core/session.js';
+import { GrpcError, GrpcWebTransport } from '../core/grpc.js';
+import { ensureSchema, buildSchema } from '../core/schema-build.js';
+import { VERSION } from '../core/version.js';
 import { createHandover, HandoverError, loginCookieHeader, readCookie } from '../login/handover.js';
 import { loginPage, landingPage, messagePage, newScriptNonce, pageCsp, escapeHtml } from '../login/page.js';
 import { HttpError, baseHeaders, sendJson, sendHtml, readJsonBody, readFormBody, assertSameOrigin, handleHandoverApi } from '../login/http.js';

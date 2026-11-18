@@ -5,10 +5,10 @@ import path from 'node:path';
 
 import { tmpHome } from './setup.js';
 
-const { SamsungFood } = await import('../src/client.js');
+const { SamsungFood } = await import('../src/core/client.js');
 const { methods } = await import('../src/api/lists.js');
 const { tools } = await import('../src/tools/lists.js');
-const { readSchema } = await import('../src/schema-build.js');
+const { readSchema } = await import('../src/core/schema-build.js');
 
 
 /* ------------------------------------------------------------------ tools */
@@ -501,7 +501,7 @@ test('primaryListId: a stale persisted value is ignored and removed, the id is n
 });
 
 test('a NOT_FOUND for the cached primary list re-fetches the lists once and retries', async () => {
-  const { GrpcError } = await import('../src/grpc.js');
+  const { GrpcError } = await import('../src/core/grpc.js');
   let primary = L1;
   const { sf, calls } = makeClient({
     'ListAPI/GetLists': () => ({ lists: [{ list: { id: primary, name: 'Home', primary: true } }] }),

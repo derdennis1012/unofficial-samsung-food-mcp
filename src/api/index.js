@@ -3,7 +3,7 @@
  * Each file exports `methods`: an object of async functions that use `this.call(...)`.
  */
 
-import { SamsungFood } from '../client.js';
+import { SamsungFood } from '../core/client.js';
 import { methods as lists } from './lists.js';
 import { methods as mealplan } from './mealplan.js';
 import { methods as recipes } from './recipes.js';

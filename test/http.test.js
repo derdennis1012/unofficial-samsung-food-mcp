@@ -9,8 +9,8 @@ import { loadOrCreateApiKey, keyMatches, bearerToken } from '../src/http/apikey.
 import { toolArea } from '../src/http/openapi.js';
 import { TOOLS } from '../src/tools/index.js';
 import { defineTool } from '../src/tools/util.js';
-import { GrpcError, TransportError } from '../src/grpc.js';
-import { LOGIN_HINT } from '../src/auth.js';
+import { GrpcError, TransportError } from '../src/core/grpc.js';
+import { LOGIN_HINT } from '../src/core/auth.js';
 import { z } from 'zod';
 
 const KEY = 'sfk_test-key-test-key-test-key-0123456789';

@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { ensureFreshToken } from '../src/session.js';
+import { ensureFreshToken } from '../src/core/session.js';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -38,7 +38,7 @@ test('a renewal that settles synchronously does not leave a stale in-flight prom
 test('SAMSUNG_FOOD_HOME: empty falls back to the default, relative is resolved', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'sf-cwd-'));
   const configDir = (value) =>
-    execFileSync(process.execPath, ['--input-type=module', '-e', `import(${JSON.stringify(pathToFileURL(path.join(root, 'src/auth.js')).href)}).then((m) => process.stdout.write(m.CONFIG_DIR))`], {
+    execFileSync(process.execPath, ['--input-type=module', '-e', `import(${JSON.stringify(pathToFileURL(path.join(root, 'src/core/auth.js')).href)}).then((m) => process.stdout.write(m.CONFIG_DIR))`], {
       cwd,
       env: { ...process.env, SAMSUNG_FOOD_HOME: value },
     }).toString();

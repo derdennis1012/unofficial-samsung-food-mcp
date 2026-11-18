@@ -5,10 +5,10 @@
  */
 
 import { ZodError } from 'zod';
-import { SamsungFood } from './client.js';
-import { GrpcError, TransportError } from './grpc.js';
-import { TOOLS } from './tools/index.js';
-import { toJsonSchema } from './tools/schema.js';
+import { SamsungFood } from '../core/client.js';
+import { GrpcError, TransportError } from '../core/grpc.js';
+import { TOOLS } from '../tools/index.js';
+import { toJsonSchema } from '../tools/schema.js';
 
 export const MAX_TEXT = 40000;
 

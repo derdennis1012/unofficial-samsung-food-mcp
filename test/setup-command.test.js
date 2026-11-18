@@ -14,8 +14,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { detectClients, findOnPath, planJsonChange, serverCommand, SERVER_NAME } from '../src/setup/clients.js';
 import { runSetup, parseSelection, checkLogin } from '../src/login/setup.js';
-import { SamsungFood } from '../src/client.js';
-import { saveAuth, clearToken } from '../src/auth.js';
+import { SamsungFood } from '../src/core/client.js';
+import { saveAuth, clearToken } from '../src/core/auth.js';
 import { fakeSamsung, testSchema, TOKEN_A } from './hosted-helpers.js';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');

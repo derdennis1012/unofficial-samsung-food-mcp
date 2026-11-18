@@ -2,8 +2,8 @@ import './setup.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { addDays, daysBetween, assertRange, today } from '../src/dates.js';
-import { toProtoDate, fromProtoDate } from '../src/client.js';
+import { addDays, daysBetween, assertRange, today } from '../src/core/dates.js';
+import { toProtoDate, fromProtoDate } from '../src/core/client.js';
 
 test('addDays / daysBetween are pure calendar arithmetic', () => {
   assert.equal(addDays('2026-12-31', 1), '2027-01-01');
@@ -32,7 +32,7 @@ const ZONES = ['UTC', 'Europe/Berlin', 'America/Los_Angeles', 'Pacific/Kiritimat
 
 test('today() is the local calendar date and arithmetic survives DST in every zone', () => {
   const code = `
-    const { today, addDays, daysBetween } = await import(${JSON.stringify(new URL('../src/dates.js', import.meta.url).href)});
+    const { today, addDays, daysBetween } = await import(${JSON.stringify(new URL('../src/core/dates.js', import.meta.url).href)});
     const lateEvening = new Date(2026, 5, 15, 23, 30);   // local 23:30
     const justAfterMidnight = new Date(2026, 5, 16, 0, 30); // local 00:30
     const out = [

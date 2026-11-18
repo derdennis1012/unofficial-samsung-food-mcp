@@ -30,11 +30,11 @@
 
 import process from 'node:process';
 import { spawn, spawnSync } from 'node:child_process';
-import { SamsungFood, MEAL_TIME_LABEL, today } from '../src/client.js';
-import { extractToken, looksLikeCredential, clearToken, requireToken, AUTH_FILE } from '../src/auth.js';
-import { loginWithCredential, renewToken, authStatus } from '../src/session.js';
-import { buildSchema, schemaInfo } from '../src/schema-build.js';
-import { VERSION } from '../src/version.js';
+import { SamsungFood, MEAL_TIME_LABEL, today } from '../src/core/client.js';
+import { extractToken, looksLikeCredential, clearToken, requireToken, AUTH_FILE } from '../src/core/auth.js';
+import { loginWithCredential, renewToken, authStatus } from '../src/core/session.js';
+import { buildSchema, schemaInfo } from '../src/core/schema-build.js';
+import { VERSION } from '../src/core/version.js';
 import { assertRawCallAllowed, redactSecrets } from '../src/tools/core.js';
 
 /** Options that never take a value, so `--yes <id>` keeps <id> as a positional argument. */

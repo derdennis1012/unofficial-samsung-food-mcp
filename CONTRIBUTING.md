@@ -18,6 +18,28 @@ What a good first issue looks like: touches one area, can be tested offline, and
 changes to the codec or transport. Examples: a clearer error message, a missing CLI option, a test
 for an edge case, a docs fix.
 
+## Repository layout
+
+```
+bin/          sf CLI entry point
+src/
+  index.js    stdio entry point (bin), delegates to mcp/stdio.js
+  lib.js      public package export
+  core/       protocol and client layer: gRPC-Web transport, protobuf codec, schema build, auth, session, client
+  api/        client methods per area (lists, meal plan, recipes, food)
+  tools/      MCP tool definitions per area (zod schemas)
+  mcp/        MCP server wrapper (tool listing and calls) and stdio entry
+  http/       HTTP API (sf serve)
+  hosted/     hosted multi-user MCP server with OAuth
+  login/      interactive login and setup command
+  setup/      MCP client configuration writers
+test/         offline tests, opt-in live suite in test/live/
+docs/         documentation
+site/         project website
+assets/       logos and screenshots
+scripts/      maintenance scripts (tool docs generator)
+```
+
 ## Setup
 
 Requires Node.js 20 or newer (`.nvmrc` pins the version used for development).

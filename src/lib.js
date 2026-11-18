@@ -9,4 +9,4 @@
 
 import './api/index.js';
 
-export * from './client.js';
+export * from './core/client.js';

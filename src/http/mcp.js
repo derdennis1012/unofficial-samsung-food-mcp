@@ -6,7 +6,7 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { callTool, listTools } from '../server.js';
+import { callTool, listTools } from '../mcp/server.js';
 
 export async function handleMcp(req, res, body, { tools, holder, version }) {
   const allowed = new Set(tools.map((t) => t.name));

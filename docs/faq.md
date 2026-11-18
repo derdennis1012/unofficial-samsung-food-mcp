@@ -36,8 +36,8 @@ API requests carry `Authorization: Bearer <token>`, the web app's `x-whisk-app-n
 Every request (API, schema build and food graph download) identifies this project honestly with
 `User-Agent: unofficial-samsung-food-mcp/<version> (+https://github.com/derdennis1012/unofficial-samsung-food-mcp)`; it
 does not pretend to be a browser. Besides your tool arguments, nothing else about you or your
-machine is sent. The exact headers are in [Samsung Food API](api.md#headers), `src/grpc.js` and
-`src/version.js`.
+machine is sent. The exact headers are in [Samsung Food API](api.md#headers), `src/core/grpc.js` and
+`src/core/version.js`.
 
 ## What is stored, and where?
 

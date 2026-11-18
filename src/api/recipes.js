@@ -5,7 +5,7 @@
  * All methods return small normalized objects instead of the raw protobuf trees.
  */
 
-import { MASK, MEAL_TIME, MEAL_TIME_LABEL, toMealTime, toProtoDate, fromProtoDate, tidyNumber } from '../client.js';
+import { MASK, MEAL_TIME, MEAL_TIME_LABEL, toMealTime, toProtoDate, fromProtoDate, tidyNumber } from '../core/client.js';
 
 const RECIPE_API = 'whisk.x.recipe.v1.RecipeAPI/';
 const REVIEW_API = 'whisk.x.recipe.v1.RecipeReviewAPI/';

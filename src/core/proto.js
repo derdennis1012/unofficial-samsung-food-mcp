@@ -2,7 +2,7 @@
  * Schema-driven protobuf codec.
  *
  * The schema is built on the user's machine by `sf schema update`
- * (src/schema-build.js) and cached as schema.json in the config dir
+ * (src/core/schema-build.js) and cached as schema.json in the config dir
  * (~/.samsung-food or $SAMSUNG_FOOD_HOME). It is extracted from the generated
  * clients in the web app bundle. Per field: { n, name, type, ref?, repeated?, oneof? }
  * There is no .proto and no protoc - encode/decode run directly against the JSON.

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Codec, WIRE } from '../src/proto.js';
+import { Codec, WIRE } from '../src/core/proto.js';
 
 const schema = {
   rpcs: { 'x.A/Get': { request: [{ n: 1, name: 'id', type: 'int64' }], response: [] } },

@@ -26,7 +26,7 @@ test('npm pack contains only src/, bin/, docs/, README.md, CHANGELOG.md, LICENSE
       `unexpected file in package: ${p}`
     );
   }
-  for (const required of ['README.md', 'LICENSE', 'package.json', 'src/index.js', 'src/client.js', 'bin/sf.js']) {
+  for (const required of ['README.md', 'LICENSE', 'package.json', 'src/index.js', 'src/core/client.js', 'bin/sf.js']) {
     assert.ok(paths.includes(required), `missing from package: ${required}`);
   }
   assert.ok(!paths.some((p) => p.endsWith('.json') && p !== 'package.json'), 'no schema caches');

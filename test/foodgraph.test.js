@@ -3,9 +3,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadGraph, lookup, match, storageInfo, expiryFor } from '../src/foodgraph.js';
-import { SamsungFood } from '../src/client.js';
-import { readSchema } from '../src/schema-build.js';
+import { loadGraph, lookup, match, storageInfo, expiryFor } from '../src/core/foodgraph.js';
+import { SamsungFood } from '../src/core/client.js';
+import { readSchema } from '../src/core/schema-build.js';
 
 const days = (max) => ({ min: 1, max, metric: 'DAYS' });
 const product = (displayName, storing, def) => ({ canonicalName: displayName.toUpperCase(), displayName, category: 'X', default: def, storing });

@@ -16,9 +16,9 @@ import { isPublicAddress, safeFetch } from '../src/hosted/fetch.js';
 import { BusyError, fairTransports, ipKey, rateLimiter, semaphore } from '../src/hosted/limits.js';
 import { cimdResolver, checkRedirectUri, cleanName, OAuthError } from '../src/hosted/oauth.js';
 import { KNOWN_CIMD_HOSTS, KNOWN_REDIRECT_HOSTS, loadConfig } from '../src/hosted/config.js';
-import { SamsungFood } from '../src/client.js';
-import { memoryTokenStore } from '../src/auth.js';
-import { GrpcError } from '../src/grpc.js';
+import { SamsungFood } from '../src/core/client.js';
+import { memoryTokenStore } from '../src/core/auth.js';
+import { GrpcError } from '../src/core/grpc.js';
 import { testSchema, tmpDir } from './hosted-helpers.js';
 
 const skip = loadSqlite() ? false : 'node:sqlite is not available on this Node.js version (needs 22.13+)';

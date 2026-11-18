@@ -241,7 +241,7 @@ URL and caches it per locale in the config dir (`~/.samsung-food`, or
 ## Schema extraction
 
 The schema is not distributed with this repository. It is built on the
-user's machine by `sf schema update` (`src/schema-build.js`) from the public
+user's machine by `sf schema update` (`src/core/schema-build.js`) from the public
 web app bundles and cached as `schema.json` in the config dir
 (`~/.samsung-food`, or `$SAMSUNG_FOOD_HOME`).
 
@@ -256,7 +256,7 @@ The web app bundles its generated clients as descriptors:
 
 Each entry is `[fieldNumber, name, type, flag, oneof?]`. The type is either a
 scalar, a reference to a message function, or `["repeated", T]` /
-`["wrapper", T]`. `src/schema-build.js` reads these descriptors and resolves
+`["wrapper", T]`. `src/core/schema-build.js` reads these descriptors and resolves
 the references – the result is roughly 240 RPCs and 830 messages without a single
 unresolved reference.
 

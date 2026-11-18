@@ -15,7 +15,7 @@
  */
 
 import crypto from 'node:crypto';
-import { extractToken } from '../auth.js';
+import { extractToken } from '../core/auth.js';
 
 export const HANDOVER_TTL_MS = 10 * 60 * 1000;
 export const MAX_ATTEMPTS = 5;

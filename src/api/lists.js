@@ -6,7 +6,7 @@
  * addRecipeToList, checkListItem, checkListItems, deleteListItems, collections, collectionRecipes, createCollection.
  */
 
-import { tidyNumber, CATEGORY_LABEL } from '../client.js';
+import { tidyNumber, CATEGORY_LABEL } from '../core/client.js';
 
 const LIST = 'whisk.x.list.v1.';
 const RECIPE = 'whisk.x.recipe.v1.';

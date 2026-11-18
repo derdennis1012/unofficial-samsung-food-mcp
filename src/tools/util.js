@@ -55,7 +55,7 @@ export const KINDS = {
  *        same arguments has a further effect (e.g. a tool that can create entries)
  * @param {boolean} [def.needsClient]  false for tools that never call the API (skips building the schema)
  * @param {object} [def.example]  valid sample arguments (placeholder IDs are fine); used by the offline validation tests
- * @param {(args:object, sf:import('../client.js').SamsungFood)=>Promise<any>} def.handler
+ * @param {(args:object, sf:import('../core/client.js').SamsungFood)=>Promise<any>} def.handler
  *        returns plain JSON-able data (objects/arrays); keep it concise
  */
 export function defineTool({ name, description, kind, schema = z.object({}), handler, example = {}, idempotent, needsClient = true }) {

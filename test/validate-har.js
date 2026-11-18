@@ -9,9 +9,9 @@
  */
 
 import fs from 'node:fs';
-import { Codec } from '../src/proto.js';
-import { decodeFrames } from '../src/grpc.js';
-import { readSchema } from '../src/schema-build.js';
+import { Codec } from '../src/core/proto.js';
+import { decodeFrames } from '../src/core/grpc.js';
+import { readSchema } from '../src/core/schema-build.js';
 
 const schema = readSchema();
 if (!schema) {

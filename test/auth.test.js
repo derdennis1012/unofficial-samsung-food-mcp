@@ -1,7 +1,7 @@
 import './setup.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { extractToken, looksLikeCredential } from '../src/auth.js';
+import { extractToken, looksLikeCredential } from '../src/core/auth.js';
 
 // Fake token: 64 characters, not a real credential.
 const TOKEN = 'fake0123456789abcdefFAKE0123456789abcdefFAKE0123456789abcdefAAAA';

@@ -8,9 +8,9 @@ import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
-import { readSchema } from '../src/schema-build.js';
-import { Codec } from '../src/proto.js';
-import { GrpcError } from '../src/grpc.js';
+import { readSchema } from '../src/core/schema-build.js';
+import { Codec } from '../src/core/proto.js';
+import { GrpcError } from '../src/core/grpc.js';
 
 /** Fixture schema plus the two AuthAPI methods used for the token renewal. */
 export function testSchema() {

@@ -4,8 +4,8 @@
  */
 
 import os from 'node:os';
-import { SamsungFood } from '../client.js';
-import { loginWithCredential, authStatus } from '../session.js';
+import { SamsungFood } from '../core/client.js';
+import { loginWithCredential, authStatus } from '../core/session.js';
 import { startLocalLogin, openInBrowser } from './local.js';
 import {
   SERVER_NAME,

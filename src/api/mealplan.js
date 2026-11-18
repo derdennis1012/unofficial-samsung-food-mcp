@@ -3,7 +3,7 @@
  * share link) and account (settings, usage). Installed onto SamsungFood.prototype.
  */
 
-import { toProtoDate, fromProtoDate, tidyNumber } from '../client.js';
+import { toProtoDate, fromProtoDate, tidyNumber } from '../core/client.js';
 
 const V2 = 'whisk.x.mealplan.v2.MealPlanV2API';
 const V1 = 'whisk.x.mealplan.v1.MealPlanAPI';

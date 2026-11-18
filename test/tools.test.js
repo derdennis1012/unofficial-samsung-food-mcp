@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 import { TOOLS } from '../src/tools/index.js';
 import { toJsonSchema } from '../src/tools/schema.js';
 import { idSchema, dateSchema, mealTimeSchema, defineTool } from '../src/tools/util.js';
-import { callTool, listTools, describeError, MAX_TEXT } from '../src/server.js';
-import { GrpcError, TransportError } from '../src/grpc.js';
+import { callTool, listTools, describeError, MAX_TEXT } from '../src/mcp/server.js';
+import { GrpcError, TransportError } from '../src/core/grpc.js';
 import { z } from 'zod';
 
 const AREAS = ['meal_plan', 'shopping_list', 'recipe', 'collection', 'collections', 'pantry', 'food', 'nutrition', 'foodlog', 'account', 'auth', 'api'];

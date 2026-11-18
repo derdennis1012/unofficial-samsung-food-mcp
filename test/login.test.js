@@ -8,8 +8,8 @@ import { createHandover, HandoverError } from '../src/login/handover.js';
 import { bookmarklet, loginPage } from '../src/login/page.js';
 import { startLocalLogin } from '../src/login/local.js';
 import { browserLogin } from '../src/login/setup.js';
-import { SamsungFood } from '../src/client.js';
-import { clearToken, AUTH_FILE } from '../src/auth.js';
+import { SamsungFood } from '../src/core/client.js';
+import { clearToken, AUTH_FILE } from '../src/core/auth.js';
 import { client, fakeSamsung, pageConfig, testSchema, TOKEN_A } from './hosted-helpers.js';
 
 const TOKEN = 'T'.repeat(48);

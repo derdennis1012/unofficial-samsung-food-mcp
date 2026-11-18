@@ -1,7 +1,7 @@
 import './setup.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isReadMethod } from '../src/client.js';
+import { isReadMethod } from '../src/core/client.js';
 
 // Every RPC method name of the web API (names only), so the read/write classification
 // is checked without depending on a downloaded schema.

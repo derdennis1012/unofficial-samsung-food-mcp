@@ -2,10 +2,10 @@ import './setup.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { buildSchema } from '../src/schema-build.js';
-import { loadGraph } from '../src/foodgraph.js';
-import { GrpcWebTransport, encodeFrame } from '../src/grpc.js';
-import { USER_AGENT, VERSION } from '../src/version.js';
+import { buildSchema } from '../src/core/schema-build.js';
+import { loadGraph } from '../src/core/foodgraph.js';
+import { GrpcWebTransport, encodeFrame } from '../src/core/grpc.js';
+import { USER_AGENT, VERSION } from '../src/core/version.js';
 
 const pkg = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 // Honest client UA; a faked Chrome UA gets a Cloudflare challenge (403) from Node's TLS fingerprint.

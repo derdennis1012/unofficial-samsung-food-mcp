@@ -16,10 +16,10 @@
 import http from 'node:http';
 import { ZodError } from 'zod';
 import { TOOLS } from '../tools/index.js';
-import { describeError, MAX_TEXT, clientHolder } from '../server.js';
-import { GrpcError, TransportError } from '../grpc.js';
-import { SchemaDriftError } from '../client.js';
-import { LOGIN_HINT } from '../auth.js';
+import { describeError, MAX_TEXT, clientHolder } from '../mcp/server.js';
+import { GrpcError, TransportError } from '../core/grpc.js';
+import { SchemaDriftError } from '../core/client.js';
+import { LOGIN_HINT } from '../core/auth.js';
 import { keyMatches, bearerToken } from './apikey.js';
 import { buildOpenApi, describeTool, DOCS_HTML, DOCS_CSP } from './openapi.js';
 
