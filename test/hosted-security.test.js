@@ -245,7 +245,7 @@ test('L2/L5: wraps of expired credentials are dropped; database, WAL and SHM fil
     assert.equal(store.getCred('r1').wrap, 'w2');
     for (const f of ['connector.db', 'connector.db-wal', 'connector.db-shm']) {
       const p = path.join(dir, f);
-      if (fs.existsSync(p)) assert.equal(fs.statSync(p).mode & 0o777, 0o600, f);
+      if (process.platform !== 'win32' && fs.existsSync(p)) assert.equal(fs.statSync(p).mode & 0o777, 0o600, f);
     }
   } finally {
     store.close();

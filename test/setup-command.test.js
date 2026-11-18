@@ -136,7 +136,7 @@ test('setup: invalid JSON is never touched; the snippet is printed instead', asy
     const cursor = path.join(s.home, '.cursor', 'mcp.json');
     fs.mkdirSync(path.dirname(cursor));
     fs.writeFileSync(cursor, '{ "mcpServers": { broken ');
-    const clients = detectClients({ home: s.home, env: pathEnv(s.bin), platform: 'linux' });
+    const clients = detectClients({ home: s.home, env: pathEnv(s.bin), platform: process.platform === 'darwin' ? 'linux' : process.platform });
     const o = collect();
     await runSetup({ yes: true, out: o.out, check: loggedIn, login: noLogin, clients, home: s.home });
     assert.equal(fs.readFileSync(cursor, 'utf8'), '{ "mcpServers": { broken ');
@@ -158,7 +158,7 @@ test('setup --dry-run writes nothing, runs nothing and does not log in', async (
     const cursor = path.join(s.home, '.cursor', 'mcp.json');
     fs.mkdirSync(path.dirname(cursor));
     fs.writeFileSync(cursor, '{"mcpServers":{"other":{"command":"x"}}}');
-    const clients = detectClients({ home: s.home, env: pathEnv(s.bin), platform: 'linux' });
+    const clients = detectClients({ home: s.home, env: pathEnv(s.bin), platform: process.platform === 'darwin' ? 'linux' : process.platform });
     const o = collect();
     await runSetup({ dryRun: true, out: o.out, check: async () => null, login: noLogin, clients, home: s.home });
     assert.equal(fs.readFileSync(cursor, 'utf8'), '{"mcpServers":{"other":{"command":"x"}}}');
@@ -176,7 +176,7 @@ test('setup: not logged in runs the browser login; no terminal without --yes cha
   const s = sandbox();
   try {
     fs.mkdirSync(path.join(s.home, '.cursor'));
-    const clients = detectClients({ home: s.home, env: pathEnv(s.bin), platform: 'linux' });
+    const clients = detectClients({ home: s.home, env: pathEnv(s.bin), platform: process.platform === 'darwin' ? 'linux' : process.platform });
     let opened;
     const o = collect();
     await assert.rejects(
@@ -205,7 +205,7 @@ test('setup --remove takes out only our entries (with backup) and calls claude m
     const cursor = path.join(s.home, '.cursor', 'mcp.json');
     fs.mkdirSync(path.dirname(cursor));
     fs.writeFileSync(cursor, JSON.stringify({ mcpServers: { other: { command: 'x' }, [SERVER_NAME]: NPX } }));
-    const clients = detectClients({ home: s.home, env: pathEnv(s.bin), platform: 'linux' });
+    const clients = detectClients({ home: s.home, env: pathEnv(s.bin), platform: process.platform === 'darwin' ? 'linux' : process.platform });
     const o = collect();
     await runSetup({ remove: true, yes: true, out: o.out, check: noLogin, login: noLogin, clients, home: s.home });
     assert.deepEqual(JSON.parse(fs.readFileSync(cursor, 'utf8')), { mcpServers: { other: { command: 'x' } } });
