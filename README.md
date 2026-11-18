@@ -175,4 +175,4 @@ small hand-made schema fixture for the offline tests. No telemetry. Details:
 
 ## Author
 
-Made by Dennis Bölling, [QAD Soft](https://qadsoft.dev) · [GitHub @derdennis1012](https://github.com/derdennis1012)
+Made by Dennis Bölling, [QAD Soft](https://qadsoft.dev/projects/samsung-food-mcp) · [GitHub @derdennis1012](https://github.com/derdennis1012)
