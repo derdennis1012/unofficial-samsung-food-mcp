@@ -54,7 +54,7 @@
     <h1 id="hero-title" class="display mx-auto max-w-[14ch] text-[42px] sm:text-[64px] lg:max-w-[20ch] lg:text-[80px]" data-reveal>Tell your assistant what you feel like eating.</h1>
     <p class="lede mx-auto mt-6 max-w-[38rem] sm:mt-7" data-reveal style="--d:80ms">Your week, your shopping list and your pantry follow. An unofficial MCP server, CLI and local API for your Samsung Food account.</p>
     <div class="mt-9 flex flex-wrap items-center justify-center gap-3" data-reveal style="--d:140ms">
-      <a href="#setup" class="btn btn-primary">Set it up in five minutes <span class="arr" aria-hidden="true">→</span></a>
+      <a href="#setup" class="btn btn-primary">Set it up in one command <span class="arr" aria-hidden="true">→</span></a>
       <a href="{{REPO}}" class="btn btn-quiet"><svg class="size-[18px]" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Source on GitHub</a>
     </div>
     <p class="mt-6 text-[13.5px] text-muted" data-reveal style="--d:200ms">Free and open source (MIT) · your login stays on your machine · not affiliated with Samsung</p>
@@ -393,19 +393,21 @@ Meal plan 2026-11-19 to 2026-11-21
 <section id="setup" class="py-20 sm:py-28" aria-labelledby="setup-title">
   <div class="wrap grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10">
     <div class="lg:col-span-5 lg:col-start-8 lg:row-start-1" data-reveal>
-      <h2 id="setup-title" class="h2 max-w-[11ch]">Cooking in five minutes.</h2>
+      <h2 id="setup-title" class="h2 max-w-[11ch]">Cooking in one command.</h2>
       <ol class="mt-8 space-y-6 text-[16px] leading-relaxed text-ink-2">
-        <li class="grid grid-cols-[28px_1fr]"><span class="font-display text-[17px] font-semibold text-tomato">1</span><span>Clone the repository and run <code class="rounded-[4px] whitespace-nowrap bg-paper-2 px-1.5 py-0.5 text-[13.5px] text-ink">npm install</code>. It needs Node.js 20 or newer.</span></li>
-        <li class="grid grid-cols-[28px_1fr]"><span class="font-display text-[17px] font-semibold text-tomato">2</span><span>Sign in at app.samsungfood.com, run <code class="rounded-[4px] whitespace-nowrap bg-paper-2 px-1.5 py-0.5 text-[13.5px] text-ink">copy(document.cookie)</code> in the browser console, then <code class="rounded-[4px] whitespace-nowrap bg-paper-2 px-1.5 py-0.5 text-[13.5px] text-ink">sf login</code>.</span></li>
-        <li class="grid grid-cols-[28px_1fr]"><span class="font-display text-[17px] font-semibold text-tomato">3</span><span>Add the server to your client and restart it. Then ask for dinner.</span></li>
+        <li class="grid grid-cols-[28px_1fr]"><span class="font-display text-[17px] font-semibold text-tomato">1</span><span>Run <code class="rounded-[4px] whitespace-nowrap bg-paper-2 px-1.5 py-0.5 text-[13.5px] text-ink">npx unofficial-samsung-food-mcp setup</code>. It needs Node.js 20 or newer.</span></li>
+        <li class="grid grid-cols-[28px_1fr]"><span class="font-display text-[17px] font-semibold text-tomato">2</span><span>Log in on the page that opens: one bookmark button on app.samsungfood.com. Samsung has no OAuth, so this hands your session over once.</span></li>
+        <li class="grid grid-cols-[28px_1fr]"><span class="font-display text-[17px] font-semibold text-tomato">3</span><span>Pick your clients (Claude Code, Claude Desktop, Cursor, VS Code), restart, ask for dinner.</span></li>
       </ol>
-      <p class="mt-8 text-[14.5px] text-muted">Not on npm yet, so the configs point at your checkout. <a class="link" href="{{DOCS}}getting-started.md">Full walkthrough</a></p>
+      <p class="mt-8 text-[14.5px] text-muted">Before the npm release: clone, <code class="rounded-[4px] whitespace-nowrap bg-paper-2 px-1.5 py-0.5 text-[13.5px] text-ink">npm install</code>, then <code class="rounded-[4px] whitespace-nowrap bg-paper-2 px-1.5 py-0.5 text-[13.5px] text-ink">node bin/sf.js setup --local</code>. No install at all: the <a class="link" href="{{DOCS}}hosted.md">hosted connector</a> (closed beta). <a class="link" href="{{DOCS}}getting-started.md">Full walkthrough</a></p>
     </div>
     <div class="lg:col-span-7 lg:row-start-1 lg:self-center" data-reveal style="--d:100ms">
       <div class="overflow-hidden rounded-[12px] bg-term shadow-[0_30px_60px_-30px_rgba(26,25,21,.45)]">
-        <pre tabindex="0" class="code overflow-x-auto border-b border-term-line px-5 py-4 text-[12.5px] max-sm:break-words max-sm:whitespace-pre-wrap"><span class="tok-p">$</span> <span class="tok-s">git</span> clone {{REPO}}.git
-<span class="tok-p">$</span> <span class="tok-s">cd</span> unofficial-samsung-food-mcp &amp;&amp; <span class="tok-s">npm</span> install &amp;&amp; <span class="tok-s">npm</span> link
-<span class="tok-p">$</span> <span class="tok-s">sf</span> login</pre>
+        <div class="relative border-b border-term-line">
+          <button type="button" class="copy-btn" data-copy aria-label="Copy the setup command">Copy</button>
+          <pre tabindex="0" class="code overflow-x-auto px-5 py-4 pr-20 text-[12.5px] max-sm:pt-14 max-sm:pr-5 max-sm:break-words max-sm:whitespace-pre-wrap" data-copy-src><code><span class="tok-s">npx</span> unofficial-samsung-food-mcp setup</code></pre>
+        </div>
+        <p class="px-5 pt-3 text-[13px] text-term-dim">Or add it by hand:</p>
         <div class="rtabs">
           <fieldset class="flex overflow-x-auto border-b border-term-line px-2">
             <legend class="sr-only">Choose your client</legend>

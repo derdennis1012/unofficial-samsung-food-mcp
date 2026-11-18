@@ -10,7 +10,7 @@ import { Codec } from './proto.js';
 import { today, addDays, daysBetween, assertRange } from './dates.js';
 export { today };
 import { GrpcWebTransport, GrpcError } from './grpc.js';
-import { loadAuth, updateAuth, readAuthFile, saveAuth, LOGIN_HINT } from './auth.js';
+import { fileTokenStore, LOGIN_HINT } from './auth.js';
 import { ensureFreshToken } from './session.js';
 import { storageInfo, expiryFor, locationCode, loadGraph } from './foodgraph.js';
 import { ensureSchema, readSchema, buildSchema, SCHEMA_FILE } from './schema-build.js';
@@ -172,9 +172,9 @@ export function looksLikeDrift(err, read) {
   return err instanceof GrpcError && err.status === 3 && /ERROR_INVALID_ARGUMENTS|field/i.test(err.message);
 }
 
-/** UNAUTHENTICATED token errors become an actionable message. */
+/** UNAUTHENTICATED errors (missing, expired or revoked session) become an actionable message. */
 export function withLoginHint(err) {
-  if (err instanceof GrpcError && err.status === 16 && (/ERROR_AUTH_TOKEN/.test(err.message) || err.httpStatus === 401)) {
+  if (err instanceof GrpcError && err.status === 16) {
     return new Error(LOGIN_HINT, { cause: err });
   }
   return err;
@@ -201,14 +201,18 @@ export class SamsungFood {
     this.transport = options.transport ?? new GrpcWebTransport(options);
     this.locale = options.locale ?? process.env.SAMSUNG_FOOD_LOCALE ?? 'en-US';
     this._token = options.token ?? null;
+    /** Where the session (token, expiry, cached meal plan id) lives; default ~/.samsung-food/auth.json. */
+    this.store = options.tokenStore ?? fileTokenStore;
     this._buildSchema = options.buildSchema ?? buildSchema;
+    /** Receives the warning of a failed token renewal (default: stderr). */
+    this._warn = options.warn;
     this._cache = {};
   }
 
   /** A usable token: the explicit one, or the stored one (renewed automatically when due). */
   async freshToken() {
     if (this._token) return this._token;
-    return ensureFreshToken({ codec: this.codec, transport: this.transport });
+    return ensureFreshToken({ codec: this.codec, transport: this.transport, store: this.store, ...(this._warn ? { warn: this._warn } : {}) });
   }
 
   /**
@@ -288,12 +292,12 @@ export class SamsungFood {
 
   async mealPlan() {
     if (this._cache.mealPlan) return this._cache.mealPlan;
-    const cached = loadAuth()?.mealPlanId;
+    const cached = this.store.load()?.mealPlanId;
     const res = await this.call('whisk.x.mealplan.v1.MealPlanAPI/GetMealPlan', {
       mealPlanId: cached ?? '',
     });
     this._cache.mealPlan = res;
-    if (res.mealPlanId && res.mealPlanId !== cached) updateAuth({ mealPlanId: res.mealPlanId });
+    if (res.mealPlanId && res.mealPlanId !== cached) await this.store.update({ mealPlanId: res.mealPlanId });
     return res;
   }
 
@@ -625,7 +629,8 @@ export class SamsungFood {
    */
   async primaryListId() {
     if (this._cache.listId) return this._cache.listId;
-    forgetPersistedListId();
+    // Older versions persisted the primary list id forever; drop that stale value.
+    this.store.unset(['listId']);
     const lists = await this.lists();
     if (!lists.length) throw new Error('No shopping list found');
     const primary = lists.find((l) => l.isPrimary) ?? lists[0];
@@ -1016,15 +1021,6 @@ export class SamsungFood {
     const ids = Array.isArray(itemIds) ? itemIds : [itemIds];
     await this.call('whisk.x.foodlist.v1.FoodlistAPI/DeleteItems', { itemIds: ids });
     return { deleted: ids };
-  }
-}
-
-/** Older versions persisted the primary list id in auth.json forever; drop that stale value. */
-function forgetPersistedListId() {
-  const file = readAuthFile();
-  if (file && 'listId' in file) {
-    const { listId: _stale, ...rest } = file;
-    saveAuth(rest);
   }
 }
 

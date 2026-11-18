@@ -8,7 +8,7 @@
  * X-Whisk-App-Version / X-Whisk-Device-Type headers, like the web app does.
  */
 
-import { loadAuth, readAuthFile, saveAuth, updateAuth, requireToken, extractToken, LOGIN_HINT } from './auth.js';
+import { loadAuth, readAuthFile, saveAuth, extractToken, fileTokenStore, LOGIN_HINT } from './auth.js';
 
 export const LOGIN_ORIGIN = 'https://login.whisk.com';
 const RENEW_BELOW_MS = 7 * 24 * 3600 * 1000;
@@ -17,8 +17,11 @@ const RETRY_AFTER_FAILURE_MS = 10 * 60 * 1000;
 const ISSUE = 'whisk.x.user.v1.AuthAPI/IssueAuthCode';
 const USE = 'whisk.x.user.v1.AuthAPI/UseAuthCode';
 
-/** Exchanges the current token for a fresh one and stores it. Returns { expiresAt, renewedAt }. */
-export async function renewToken({ codec, transport, token }) {
+/**
+ * Exchanges the current token for a fresh one and stores it in `store` (default: auth.json).
+ * Returns { expiresAt, renewedAt }.
+ */
+export async function renewToken({ codec, transport, token, store = fileTokenStore }) {
   for (const m of [ISSUE, USE]) {
     if (!codec.schema.rpcs[m]) {
       throw new Error(`The protocol schema lacks ${m}. Run: sf schema update`);
@@ -37,46 +40,61 @@ export async function renewToken({ codec, transport, token }) {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + Number(fresh.expiresIn || 14 * 86400) * 1000).toISOString();
   const renewedAt = now.toISOString();
-  updateAuth({ accessToken: fresh.accessToken, expiresAt, renewedAt });
+  await store.update({ accessToken: fresh.accessToken, expiresAt, renewedAt });
   return { expiresAt, renewedAt };
 }
 
 const needsRenewal = (auth) =>
   !auth.expiresAt || new Date(auth.expiresAt).getTime() - Date.now() < RENEW_BELOW_MS;
 
-let inflight = null;
-let lastFailure = 0;
+/** Renewal state per store (or per store key): the shared in-flight renewal and the last failure. */
+const renewalState = new Map();
+const stateFor = (store) => {
+  const k = store.key ?? store;
+  let st = renewalState.get(k);
+  if (!st) renewalState.set(k, (st = { inflight: null, lastFailure: 0 }));
+  return st;
+};
+
+function requireSession(store) {
+  const auth = store.load();
+  if (!auth?.accessToken) throw new Error(LOGIN_HINT);
+  return auth;
+}
 
 /**
  * Returns a usable token, renewing it first if its expiry is unknown or less than
- * 7 days away. Concurrent callers share one renewal; the file is re-read before
+ * 7 days away. Concurrent callers share one renewal; the store is re-read before
  * renewing in case another process already did it. A failed renewal only warns.
  */
-export async function ensureFreshToken({ codec, transport, warn = (m) => process.stderr.write(`${m}\n`) }) {
-  const auth = requireToken();
+export async function ensureFreshToken({ codec, transport, warn = (m) => process.stderr.write(`${m}\n`), store = fileTokenStore }) {
+  const auth = requireSession(store);
   // A token from the environment cannot be persisted, so it is never renewed.
-  if (process.env.SAMSUNG_FOOD_TOKEN || !needsRenewal(auth)) return auth.accessToken;
-  if (Date.now() - lastFailure < RETRY_AFTER_FAILURE_MS) return auth.accessToken;
+  if (store.renewable?.() === false || !needsRenewal(auth)) return auth.accessToken;
+  const st = stateFor(store);
+  if (Date.now() - st.lastFailure < RETRY_AFTER_FAILURE_MS) return auth.accessToken;
 
-  if (inflight) return inflight;
+  if (st.inflight) return st.inflight;
   // Assign first, then attach the cleanup: if the body finished before the assignment (all of it can
   // run synchronously), a `finally` inside it would reset `inflight` too early and the settled
   // promise would stay cached forever.
   const p = (async () => {
     try {
-      const again = requireToken();
+      const again = requireSession(store);
       if (!needsRenewal(again)) return again.accessToken;
-      await renewToken({ codec, transport, token: again.accessToken });
-      return requireToken().accessToken;
+      await renewToken({ codec, transport, token: again.accessToken, store });
+      return requireSession(store).accessToken;
     } catch (err) {
-      lastFailure = Date.now();
+      st.lastFailure = Date.now();
       warn(`samsung-food: token renewal failed (${err.message}); continuing with the current token.`);
-      return requireToken().accessToken;
+      return requireSession(store).accessToken;
     }
   })();
-  inflight = p;
+  st.inflight = p;
   p.finally(() => {
-    if (inflight === p) inflight = null;
+    if (st.inflight === p) st.inflight = null;
+    // Keyed stores (one per hosted user) must not accumulate state after a good renewal.
+    if (!st.inflight && !st.lastFailure && store.key !== undefined) renewalState.delete(store.key);
   }).catch(() => {});
   return p;
 }

@@ -71,7 +71,7 @@ export function saveAuth(data) {
   return AUTH_FILE;
 }
 
-export const LOGIN_HINT = 'Samsung Food login missing or expired. Run `sf login` (see docs/getting-started.md).';
+export const LOGIN_HINT = 'Samsung Food login missing or expired. Run `sf login` to connect again: it opens a page with a one-click button (see docs/getting-started.md).';
 
 export function requireToken() {
   const auth = loadAuth();
@@ -86,10 +86,9 @@ export function updateAuth(patch) {
   return saveAuth({ ...current, ...patch });
 }
 
-/** Removes the session fields only; the cached mealPlanId stays. */
+/** Logout: removes the stored session completely (token, expiry, account id and the cached meal plan id). */
 export function clearToken() {
-  const { accessToken, expiresAt, renewedAt, savedAt, ...rest } = readAuthFile() ?? {};
-  saveAuth(rest);
+  fs.rmSync(AUTH_FILE, { force: true });
 }
 
 /** The file content without the SAMSUNG_FOOD_TOKEN override. */
@@ -99,4 +98,48 @@ export function readAuthFile() {
   } catch {
     return null;
   }
+}
+
+/**
+ * Token stores. The client and the session code read and write the session through a store, so a
+ * client can run with something other than the global auth.json (the hosted connector keeps one
+ * encrypted record per user). A store is { load(), update(patch), unset(keys), renewable() }:
+ *   load()       the effective session ({ accessToken, expiresAt, mealPlanId, ... }) or null
+ *   update(p)    merges p into the persisted session
+ *   unset(keys)  removes keys from the persisted session (no write when none of them is present)
+ *   renewable()  whether a renewed token can be stored (false for a token from the environment)
+ * Optional `key`: renewals of stores with the same key are shared (one renewal at a time).
+ */
+export const fileTokenStore = {
+  load: loadAuth,
+  update: updateAuth,
+  unset(keys) {
+    const file = readAuthFile();
+    if (!file || !keys.some((k) => k in file)) return;
+    const rest = { ...file };
+    for (const k of keys) delete rest[k];
+    saveAuth(rest);
+  },
+  renewable: () => !process.env.SAMSUNG_FOOD_TOKEN,
+};
+
+/** A store that keeps the session in memory only; `onChange(data)` is called after every write. */
+export function memoryTokenStore(initial = {}, { onChange = () => {}, key } = {}) {
+  let data = { ...initial };
+  return {
+    key,
+    load: () => (data.accessToken ? { ...data } : null),
+    update(patch) {
+      data = { ...data, ...patch };
+      onChange({ ...data });
+      return data;
+    },
+    unset(keys) {
+      if (!keys.some((k) => k in data)) return;
+      data = { ...data };
+      for (const k of keys) delete data[k];
+      onChange({ ...data });
+    },
+    renewable: () => true,
+  };
 }

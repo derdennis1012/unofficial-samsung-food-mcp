@@ -8,6 +8,26 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Hosted multi-user connector `sf host` (also `sf-host`, Docker image): an OAuth 2.1 authorization
+  server (PKCE S256, dynamic client registration, client ID metadata documents, refresh token
+  rotation, revocation, RFC 9728/8414/9207 metadata) in front of a Streamable HTTP MCP endpoint, so
+  Samsung Food can be added to ChatGPT, claude.ai and other remote MCP clients. Closed-beta invite
+  codes, read-only option, per-user rate limits, self-service disconnect, admin CLI
+  (`sf host invites|users|cleanup|keygen`). Samsung sessions are stored encrypted with a per-connection
+  key that only the client's tokens can unwrap. Requires Node.js 22.13+ (`node:sqlite`). See
+  [docs/hosted.md](docs/hosted.md).
+- Browser login: `sf login` in a terminal opens a local page (127.0.0.1, random port) with a
+  one-click bookmark button for app.samsungfood.com and a paste field, and exits once the session is
+  verified. The same handover (one-time nonce bound to the browser, session only in the URL
+  fragment) is used by the hosted connector's consent page.
+- `sf setup` and `npx unofficial-samsung-food-mcp setup`: one command from zero to a working client.
+  Checks Node and the login (browser login if needed), detects Claude Code, Claude Desktop, Cursor
+  and VS Code and configures the chosen ones: `claude mcp add --scope user`, or a merge of only the
+  `samsung-food` entry into the JSON config with a timestamped backup and an atomic write (invalid
+  JSON is never touched; VS Code gets a snippet). `--dry-run`, `--yes`, `--remove`, `--local`.
+- `SamsungFood` accepts a `tokenStore` option (`fileTokenStore`, `memoryTokenStore` in `auth.js`), so
+  a client can keep its session somewhere other than `auth.json`; renewals write back through it.
+
 - `sf tools [--json]` lists all MCP tools with their area and access (read-only, write,
   destructive), offline.
 - `sf --version`, and `--name=value` as an alternative option syntax.
@@ -15,6 +35,10 @@ All notable changes to this project are documented here. The format follows
   match a product.
 
 ### Changed
+
+- `sf logout` removes `auth.json` completely (before, the cached meal plan ID stayed).
+- Every `UNAUTHENTICATED` answer from Samsung Food becomes the login hint, which now explains how to
+  reconnect, instead of a raw gRPC error.
 
 - Renamed to `unofficial-samsung-food-mcp` so the name signals that the project is not affiliated with Samsung. Commands: `sf` (CLI), `unofficial-samsung-food-mcp` (MCP stdio server), `sf-api` (HTTP API, was `samsung-food-api`). The MCP server name reported on `initialize` and the User-Agent changed accordingly. Config dir `~/.samsung-food` and `SAMSUNG_FOOD_*` variables are unchanged.
 - zod 4 (`^4.6.7`, fixes GHSA-mrhx-c7xc-m3w5 in older zod). Tool input schemas are now converted
@@ -38,6 +62,18 @@ All notable changes to this project are documented here. The format follows
   JSON with `--json`, like the other read commands.
 - `sf login "<token>"` warns that a credential on the command line ends up in the shell history;
   the docs recommend the clipboard or `--paste`.
+
+### Security
+
+- Hosted: redirect hosts default to chatgpt.com, claude.ai, claude.com plus loopback (`SF_HOST_REDIRECT_HOSTS`, `*` = open, unsafe); the allowlist also applies to client ID metadata documents, whose hosts default to the same list.
+- Hosted: the consent page shows the verified CIMD host, or "(unverified)" for dynamically registered clients; control and format characters are stripped from client names.
+- Hosted: CIMD fetches have a total deadline, a concurrency cap, de-duplication and a negative cache; the SSRF filter also covers ::/96, 64:ff9b:1::/48, 2002::/16, 2001::/32 and 192.88.99.0/24.
+- Hosted: rate limits count IPv6 per /64 and are never reset wholesale; at most 5 pending logins per network, the oldest unverified one is evicted; `/disconnect` is rate limited.
+- Hosted: the grant key rotates on every refresh, expired key wraps are dropped within a minute, files are created with umask 077 and `/data` is mode 700.
+- Hosted: a full client table evicts the oldest never-used registration; never-used DCR clients are deleted after 24 hours.
+- Hosted: the upstream queue is bounded with at most 2 concurrent calls per user; renewal failures are logged without upstream text; read-only grants can only disconnect themselves.
+- Hosted: the compose example publishes no port and joins a shared proxy network.
+- `sf login`: the local login page requires the secret from the link the CLI opens.
 
 ### Documentation
 

@@ -2,8 +2,10 @@
 /**
  * sf - CLI for Samsung Food.
  *
- *   sf login [--open]             log in with the browser session (clipboard, argument or stdin)
- *   sf logout / sf renew          remove the stored token / renew it now
+ *   sf login [--paste]            log in: browser page with a one-click button (or paste in the terminal)
+ *   sf setup [--dry-run|--remove] log in if needed and add the MCP server to the installed clients
+ *   sf logout / sf renew          remove the stored session / renew it now
+ *   sf host ...                   hosted multi-user connector (see docs/hosted.md)
  *   sf whoami                     check account
  *   sf plan [--days 7]            show meal plan
  *   sf plan add <recipeId> --date 2026-09-22 --meal dinner
@@ -36,7 +38,7 @@ import { VERSION } from '../src/version.js';
 import { assertRawCallAllowed, redactSecrets } from '../src/tools/core.js';
 
 /** Options that never take a value, so `--yes <id>` keeps <id> as a positional argument. */
-const BOOLEAN_FLAGS = new Set(['yes', 'json', 'open', 'paste', 'dry', 'unscheduled', 'replace', 'read-only', 'allow-raw', 'no-mcp', 'quiet', 'show-key', 'help', 'version']);
+const BOOLEAN_FLAGS = new Set(['yes', 'json', 'open', 'paste', 'dry', 'unscheduled', 'replace', 'read-only', 'allow-raw', 'no-mcp', 'quiet', 'show-key', 'help', 'version', 'no-browser']);
 /** Options that always take a value (`--name value` or `--name=value`). */
 const VALUE_FLAGS = new Set(['days', 'from', 'to', 'date', 'meal', 'recipe', 'list', 'limit', 'title', 'servings', 'seed', 'location', 'depth', 'token', 'host', 'port', 'cors']);
 
@@ -165,6 +167,8 @@ const LOGIN_HELP = [
   '  2. Open the browser DevTools console and run:  copy(document.cookie)',
   '  3. Run  sf login  again (it reads the clipboard), or  sf login --paste  and paste it into the terminal',
   '',
+  'In an interactive terminal, plain  sf login  opens a browser page with a one-click button instead.',
+  '',
   'Also accepted: the bare token, "Bearer <token>", or a "Copy as cURL" command.',
 ].join('\n');
 
@@ -257,6 +261,16 @@ function fmtList(list) {
 }
 
 async function main() {
+  // The hosted connector has its own subcommands and options (docs/hosted.md).
+  if (process.argv[2] === 'host') {
+    const { runHostCli } = await import('../src/hosted/cli.js');
+    return runHostCli(process.argv.slice(3));
+  }
+  // Setup has its own options (--yes, --dry-run, --remove, --local).
+  if (process.argv[2] === 'setup') {
+    const { runSetupCli } = await import('../src/login/setup.js');
+    return runSetupCli(process.argv.slice(3));
+  }
   const parsed = parseArgs(process.argv.slice(2));
   flags = parsed.flags;
   [command, sub, ...rest] = parsed.positional;
@@ -286,6 +300,15 @@ async function main() {
       if (looksLikeCredential(clip)) token = extractToken(clip);
     }
     if (!token) {
+      // Interactive terminal: the browser page (one button on app.samsungfood.com, or paste there).
+      if (!arg && process.stdin.isTTY && !flags.paste) {
+        const { browserLogin } = await import('../src/login/setup.js');
+        const res = await browserLogin({ open: !flags['no-browser'] });
+        return out(
+          `Logged in as ${res.account}.\nSession stored in ${AUTH_FILE}` +
+            (res.expiresAt ? `\nValid until ${new Date(res.expiresAt).toLocaleString('en-US')} (renews automatically)` : '')
+        );
+      }
       console.error(LOGIN_HELP);
       process.exit(1);
     }
@@ -299,7 +322,7 @@ async function main() {
 
   if (command === 'logout') {
     clearToken();
-    return out(`Token removed from ${AUTH_FILE} (the cached meal plan id is kept).`);
+    return out(`Logged out: the Samsung Food session was removed from ${AUTH_FILE}.`);
   }
 
   if (command === 'renew') {
@@ -636,8 +659,11 @@ async function main() {
         [
           'sf - Samsung Food CLI',
           '',
-          '  sf login [--open]                log in (reads the clipboard; see README)',
-          '  sf logout                        remove the stored token',
+          '  sf login                         log in: opens a page with a one-click button for app.samsungfood.com',
+          '  sf login --paste                 paste the session in the terminal instead (SSH, no browser)',
+          '  sf setup                         log in if needed and add the MCP server to Claude, Cursor, VS Code',
+          '  sf setup --dry-run | --remove    preview only / take the entries out again (setup --help)',
+          '  sf logout                        remove the stored session',
           '  sf renew                         renew the token now (normally automatic)',
           '  sf status                        token and schema status',
           '  sf whoami                        account',
@@ -680,6 +706,7 @@ async function main() {
           '  sf serve [--host 127.0.0.1] [--port 8787] [--read-only] [--allow-raw] [--cors <origin>]',
           '                                   local HTTP API: /v1/tools, /openapi.json, /docs, /mcp',
           '  sf serve --show-key              print the API key',
+          '  sf host help                     hosted multi-user connector for ChatGPT / claude.ai (docs/hosted.md)',
           '',
           'Commands that show data print formatted text; add --json for the raw JSON. Most write commands print their JSON result.',
           'Commands that delete or overwrite data ask first; pass --yes to skip the question (required without a terminal).',

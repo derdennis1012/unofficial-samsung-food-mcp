@@ -33,7 +33,8 @@
   "bin": {
     "sf": "bin/sf.js",
     "unofficial-samsung-food-mcp": "src/index.js",
-    "sf-api": "src/http/main.js"
+    "sf-api": "src/http/main.js",
+    "sf-host": "src/hosted/main.js"
   },
   "files": [
     "src",
@@ -62,7 +63,8 @@
     "test:coverage": "node --test --experimental-test-coverage test/*.test.js",
     "test:live": "node test/live/run.js --live",
     "test:live:cleanup": "node test/live/run.js --live --cleanup",
-    "validate": "node test/validate-har.js"
+    "validate": "node test/validate-har.js",
+    "host": "node src/hosted/main.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.0",

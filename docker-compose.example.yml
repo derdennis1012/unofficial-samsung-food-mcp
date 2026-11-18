@@ -1,0 +1,42 @@
+# Example deployment of the hosted connector behind a TLS reverse proxy (Caddy, nginx, Traefik, ...).
+# Copy to docker-compose.yml, create connector.env (see docs/hosted.md), then: docker compose up -d
+# Admin commands: docker compose exec connector node src/hosted/main.js invites create --uses 1
+#
+# Networking: the connector publishes no port. The reverse proxy reaches it over a shared Docker
+# network ("proxy" below, created once with `docker network create proxy`; the proxy container
+# joins it too) at http://connector:8788. Never publish the port on 0.0.0.0 on a host with a public
+# IP: Docker's port publishing bypasses host firewalls such as ufw.
+# SF_HOST_TRUST_PROXY=1 is only safe when nothing but the proxy can reach the port (otherwise any
+# client can forge X-Forwarded-For and dodge the rate limits).
+services:
+  connector:
+    build: .
+    image: samsung-food-connector
+    restart: unless-stopped
+    env_file: connector.env          # SF_HOST_PUBLIC_URL, SF_HOST_MASTER_KEY or *_FILE, ... (never commit it)
+    environment:
+      SF_HOST_TRUST_PROXY: "1"       # exactly one reverse proxy in front sets X-Forwarded-For
+    networks: [proxy]
+    # Variant: the reverse proxy runs directly on the host (not in Docker). Remove `networks`
+    # above and publish on loopback only - never "8788:8788", which listens on all interfaces:
+    # ports:
+    #   - "127.0.0.1:8788:8788"
+    volumes:
+      - connector-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+networks:
+  proxy:
+    external: true
+
+volumes:
+  connector-data:

@@ -36,9 +36,8 @@ function toolMatrix(data) {
 }
 
 /* ------------------------------------------------------------------ setup tabs */
-export const SERVER_PATH = '/path/to/unofficial-samsung-food-mcp/src/index.js';
 const json = (v) => JSON.stringify(v, null, 2).replace(/\[\n\s*([^\[\]{}]*?)\n\s*\]/g, (m, inner) => `[${inner.replace(/\n\s*/g, ' ')}]`);
-const entry = { command: 'node', args: [SERVER_PATH] };
+const entry = { command: 'npx', args: ['-y', 'unofficial-samsung-food-mcp'] };
 
 export const CONFIGS = [
   {
@@ -46,7 +45,7 @@ export const CONFIGS = [
     label: 'Claude Code',
     where: 'One command. <code>--scope user</code> makes it available in every project.',
     lang: 'sh',
-    code: `claude mcp add --scope user samsung-food -- \\\n  node ${SERVER_PATH}`,
+    code: `claude mcp add --scope user samsung-food -- \\\n  npx -y unofficial-samsung-food-mcp`,
   },
   {
     id: 'claude-desktop',
@@ -65,7 +64,7 @@ export const CONFIGS = [
   {
     id: 'vscode',
     label: 'VS Code',
-    where: '<code>.vscode/mcp.json</code>. Note the key <code>servers</code> and the <code>type</code>.',
+    where: 'Command palette: MCP: Open User Configuration, or <code>.vscode/mcp.json</code>. Note the key <code>servers</code> and the <code>type</code>.',
     lang: 'json',
     code: json({ servers: { 'samsung-food': { type: 'stdio', ...entry } } }),
   },
@@ -83,7 +82,7 @@ export function highlight(code, lang) {
   if (lang === 'sh') {
     return e
       .split('\n')
-      .map((l) => l.replace(/(--[\w-]+)/g, '<span class="tok-k">$1</span>').replace(/^(\s*)(claude|sf|node|curl|git|npm)\b/, '$1<span class="tok-s">$2</span>').replace(/(&quot;[^&]*?&quot;)/g, '<span class="tok-a">$1</span>'))
+      .map((l) => l.replace(/(--[\w-]+)/g, '<span class="tok-k">$1</span>').replace(/^(\s*)(claude|sf|node|curl|git|npm|npx)\b/, '$1<span class="tok-s">$2</span>').replace(/(&quot;[^&]*?&quot;)/g, '<span class="tok-a">$1</span>'))
       .join('\n');
   }
   return e

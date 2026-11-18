@@ -12,8 +12,8 @@ import { toJsonSchema } from './tools/schema.js';
 
 export const MAX_TEXT = 40000;
 
-export function listTools() {
-  return TOOLS.map((t) => ({
+export function listTools(tools = TOOLS) {
+  return tools.map((t) => ({
     name: t.name,
     description: t.description,
     inputSchema: toJsonSchema(t.schema),
@@ -64,9 +64,10 @@ function packResult(result) {
  * @param {string} name
  * @param {unknown} rawArgs
  * @param {{get: () => Promise<SamsungFood>}} holder  lazy client factory
+ * @param {Array} [tools]  registry to look the tool up in (default: all tools)
  */
-export async function callTool(name, rawArgs, holder) {
-  const tool = TOOLS.find((t) => t.name === name);
+export async function callTool(name, rawArgs, holder, tools = TOOLS) {
+  const tool = tools.find((t) => t.name === name);
   if (!tool) {
     return { isError: true, content: [{ type: 'text', text: `Unknown tool: ${name}` }] };
   }

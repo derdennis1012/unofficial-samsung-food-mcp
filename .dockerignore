@@ -1,0 +1,6 @@
+# Only package.json, the lockfile, src/ and bin/ go into the image.
+*
+!package.json
+!package-lock.json
+!src/
+!bin/

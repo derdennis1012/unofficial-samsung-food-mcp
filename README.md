@@ -50,48 +50,61 @@ ingredients on my shopping list", "What in my pantry expires this week?", "Impor
 
 ## Quick start
 
-Requires Node.js 20 or newer. The package is not on npm yet, so install from source.
+Requires Node.js 20 or newer and a Samsung Food account.
+
+### 1. One command
+
+```bash
+npx unofficial-samsung-food-mcp setup
+```
+
+It logs you in (a page opens in your browser), finds Claude Code, Claude Desktop, Cursor and VS Code,
+and asks which of them to configure. Then restart the client and ask: "What's on my meal plan this
+week?" Preview first with `--dry-run`; undo with `--remove`.
+
+> The npm package is not released yet. Until then: clone the repository, run `npm install`, then
+> `node bin/sf.js setup --local` (the clients then start this checkout instead of `npx`).
+
+**How the login works.** Samsung Food has no OAuth or API keys, so the tool takes over the session of
+your browser once. The login page shows one button: drag it to your bookmarks bar, open
+[app.samsungfood.com](https://app.samsungfood.com) and click it there. No browser on the machine
+(SSH)? `sf login --paste`. The session grants full access to your account; it stays on your computer.
+
+### 2. Hosted connector
+
+For ChatGPT or claude.ai without running anything locally: the [hosted connector](docs/hosted.md)
+(closed beta).
+
+### 3. Manual configuration
+
+```json
+{
+  "mcpServers": {
+    "samsung-food": { "command": "npx", "args": ["-y", "unofficial-samsung-food-mcp"] }
+  }
+}
+```
+
+Paths and formats for every client (Claude Desktop, Claude Code, Cursor, VS Code, generic stdio) are
+in [docs/mcp-clients.md](docs/mcp-clients.md). Log in first with `sf login`.
+
+### From source
 
 ```bash
 git clone https://github.com/derdennis1012/unofficial-samsung-food-mcp.git
 cd unofficial-samsung-food-mcp
 npm install
-npm link                 # optional: provides the `sf` and `unofficial-samsung-food-mcp` commands
+npm link        # optional: provides `sf` and `unofficial-samsung-food-mcp`
 ```
 
-1. Log in at [app.samsungfood.com](https://app.samsungfood.com) in your browser.
-2. In the DevTools console run `copy(document.cookie)`.
-3. Run `sf login` (it reads the clipboard), or `sf login --paste` and paste it into the terminal.
-   The copied text contains a session token that grants full access to your account; keep it
-   private and do not pass it as a command line argument (it would end up in your shell history).
-4. Check it: `sf whoami`, then `sf plan --days 7`.
-5. Connect an AI client with the config below.
-
-Without `npm link`, use `node bin/sf.js` in place of `sf`.
-
-## MCP configuration
-
-```json
-{
-  "mcpServers": {
-    "samsung-food": {
-      "command": "node",
-      "args": ["/absolute/path/to/unofficial-samsung-food-mcp/src/index.js"],
-      "env": { "SAMSUNG_FOOD_LOCALE": "en-US" }
-    }
-  }
-}
-```
-
-Claude Code: `claude mcp add samsung-food -- node /absolute/path/to/unofficial-samsung-food-mcp/src/index.js`.
-Exact steps for Claude Desktop (macOS and Windows), Cursor, VS Code and generic stdio clients, and
-the `npx` variant for after the npm release, are in [docs/mcp-clients.md](docs/mcp-clients.md).
+Without `npm link`, use `node bin/sf.js` in place of `sf`. Development workflow:
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Documentation
 
 | Page | Contents |
 |---|---|
-| [Getting started](docs/getting-started.md) | Install, login walkthrough, first commands |
+| [Getting started](docs/getting-started.md) | One-command setup, login walkthrough, first commands |
 | [MCP clients](docs/mcp-clients.md) | Setup for each client |
 | [CLI reference](docs/cli.md) | Every `sf` command |
 | [Tool reference](docs/tools.md) | All 89 MCP tools with parameters and examples |

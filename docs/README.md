@@ -12,6 +12,7 @@
 | [Architecture](architecture.md) | Codec, transport, schema build, reliability rules |
 | [Samsung Food API](api.md) | Protocol reference: services, messages, data model |
 | [Local HTTP API](http-api.md) | `sf serve`: REST/JSON, OpenAPI, API key, MCP over HTTP |
+| [Hosted connector](hosted.md) | `sf host`: multi-user OAuth connector for ChatGPT, claude.ai and other remote MCP clients; self-hosting, threat model, admin CLI |
 
 Project pages: [README](../README.md), [CONTRIBUTING](../CONTRIBUTING.md), [ROADMAP](../ROADMAP.md),
 [SECURITY](../SECURITY.md), [CHANGELOG](../CHANGELOG.md).

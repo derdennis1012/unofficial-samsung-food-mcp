@@ -1,5 +1,10 @@
 # MCP clients
 
+Shortcut: `npx unofficial-samsung-food-mcp setup` (before the npm release: `node bin/sf.js setup
+--local` in a checkout) logs you in and writes these entries for Claude Code, Claude Desktop and
+Cursor, with a backup of each file; for VS Code it prints the snippet. This page is for doing it by
+hand or for other clients.
+
 The MCP server speaks stdio. Every client needs the same three things: a command, its arguments,
 and optionally environment variables. The server reads the token that `sf login` stored, so log in
 first ([Getting started](getting-started.md)).

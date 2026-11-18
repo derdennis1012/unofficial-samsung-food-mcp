@@ -1,6 +1,6 @@
 # Getting started
 
-This page takes you from a fresh checkout to your first working commands.
+This page takes you from nothing to a connected AI client and your first commands.
 For the MCP client setup see [MCP clients](mcp-clients.md).
 
 > **Unofficial.** This project is not affiliated with Samsung or Whisk. It uses a private,
@@ -11,32 +11,37 @@ For the MCP client setup see [MCP clients](mcp-clients.md).
 
 - Node.js 20 or newer
 - A Samsung Food account (any login method)
-- A desktop browser, to copy your session once
+- A desktop browser, for the one-time login
 
-## Install
-
-The package is not on npm yet. Install from source:
+## Set up in one command
 
 ```bash
-git clone https://github.com/derdennis1012/unofficial-samsung-food-mcp.git
-cd unofficial-samsung-food-mcp
-npm install
-npm link          # optional: puts `sf` and `unofficial-samsung-food-mcp` on your PATH
+npx unofficial-samsung-food-mcp setup
 ```
 
-Without `npm link`, replace `sf` in all examples with `node bin/sf.js`, and start the MCP server
-with `node src/index.js`.
+1. It checks Node and whether you are logged in. If not, a login page opens in your browser
+   (details below) and the terminal shows `Connected as <your name>`.
+2. It lists the MCP clients it finds (Claude Code, Claude Desktop, Cursor, VS Code) and asks which to
+   configure; Enter takes all. Config files are backed up first, and only the `samsung-food` entry
+   is touched.
+3. Restart the client and ask: "What's on my meal plan this week?"
 
-Check that it runs (this needs no login and no network):
+`--dry-run` shows what would happen without writing anything, `--yes` skips the question (scripts),
+`--remove` takes the entries out again.
 
-```bash
-sf help
-```
+> **Before the npm release** `npx` cannot find the package yet. Clone instead (see
+> [From source](#from-source)) and run `node bin/sf.js setup --local`: the clients then start your
+> checkout with the current `node` instead of `npx`.
+
+**Other ways in.** No local install: the [hosted connector](hosted.md) for ChatGPT and claude.ai
+(closed beta). Configuring a client by hand: [MCP clients](mcp-clients.md) (log in first with
+`sf login`).
 
 ## Log in
 
-Samsung Food signs users in on a separate domain with a captcha and social logins, so this tool
-cannot log in by itself. It takes over the session of your browser instead. That works with every
+Samsung Food has no OAuth and no API keys, and it signs users in on a separate domain with a
+captcha and social logins, so this tool cannot log in by itself. It takes over the session of your
+browser instead. That works with every
 login method (Google, Apple, e-mail, ...).
 
 ### What you are copying
@@ -48,24 +53,57 @@ control, or shared documents.
 
 ### Steps
 
-1. Log in at <https://app.samsungfood.com>. `sf login --open` opens the page for you.
-2. Open the browser DevTools console and run:
+Run:
 
-   ```js
-   copy(document.cookie)
-   ```
+```bash
+sf login
+```
 
-3. Run:
+`sf login` starts a small page on your own computer (`http://127.0.0.1:<random port>`, only for
+this login, closed afterwards) and opens it in your browser. The page shows one button:
 
-   ```bash
-   sf login
-   ```
+1. Drag the button **Send to sf login** to your bookmarks bar.
+2. Open <https://app.samsungfood.com> in the same browser and log in.
+3. Click the bookmark there. The page checks the session with Samsung Food, shows
+   "Connected as <your name>", and the terminal prints `Logged in as ...` and exits.
 
-Use the clipboard (`sf login`) or `sf login --paste`. `sf login` takes its input in this order:
-arguments on the command line, standard input (with `--paste`, or when input is piped), then the
-clipboard. Passing the credential as an argument works but prints a warning: it ends up in your
-shell history. The clipboard is only used if its content
-looks like a Samsung Food credential. Accepted input:
+The button is made for this one login (it carries a one-time code that expires after 10 minutes),
+so after a later `sf login` drag the new one. It only reads the `whisk.USER_TOKEN` cookie, not the
+other cookies of the site. If you click it on another site it says so and offers to open Samsung
+Food.
+
+How the session gets from Samsung Food to the CLI:
+
+```mermaid
+sequenceDiagram
+    participant T as Terminal (sf login)
+    participant P as Login page 127.0.0.1
+    participant S as app.samsungfood.com tab
+    participant API as Samsung Food API
+    T->>P: start server, open browser
+    P-->>P: login page with button (one-time nonce, browser cookie)
+    Note over S: user is logged in, clicks the bookmark
+    S->>P: navigate to /login/landing#n=nonce&c=session
+    Note over P: the #fragment is not sent to the server
+    P->>P: page script POSTs {n, c} (same origin, same browser cookie), clears the address bar
+    P->>API: GetMe with the session
+    API-->>P: account
+    P-->>T: verified: store auth.json, renew, exit
+```
+
+**Other ways.** The page also has a paste field ("Other ways: paste the session"): run
+`copy(document.cookie)` in the DevTools console on app.samsungfood.com and paste it. Without a
+browser on the machine (SSH, containers) use the terminal:
+
+```bash
+sf login --paste      # paste, then Ctrl-D (Ctrl-Z, Enter on Windows)
+```
+
+`sf login` takes its input in this order: arguments on the command line, standard input (with
+`--paste`, or when input is piped), the clipboard (only if its content looks like a Samsung Food
+credential), and finally, in an interactive terminal, the browser page. `--no-browser` prints the
+page URL instead of opening it. Passing the credential as an argument works but prints a warning:
+it ends up in your shell history. Accepted input everywhere:
 
 - the full cookie string (the token is the `whisk.USER_TOKEN` cookie)
 - the bare token
@@ -74,8 +112,10 @@ looks like a Samsung Food credential. Accepted input:
 - a "Copy as cURL" command from the DevTools network tab
 
 Clipboard access needs `pbpaste` (macOS), PowerShell `Get-Clipboard` (Windows), or one of
-`wl-paste`, `xclip`, `xsel` (Linux). If none is available, run `sf login --paste`, paste the text
-and finish with Ctrl-D (Ctrl-Z, Enter on Windows).
+`wl-paste`, `xclip`, `xsel` (Linux).
+
+`sf setup` (or `npx unofficial-samsung-food-mcp setup`) runs this same login when you are not
+logged in yet.
 
 ### What login does
 
@@ -92,12 +132,13 @@ dropped.
 Tokens last 14 days and renew automatically. Before an API call, if the expiry is unknown or less
 than 7 days away, the tool exchanges the current token for a new one. As long as you use the CLI
 or MCP server at least about every two weeks, you do not need to log in again. After a longer
-break run `sf login` again. Every renewal creates a new session on your account.
+break run `sf login` again; tools then answer with "Samsung Food login missing or expired. Run
+`sf login` ..." instead of a raw API error. Every renewal creates a new session on your account.
 
 ```bash
 sf status      # token present, expiry, days left, last renewal, schema state
 sf renew       # renew now (normally automatic)
-sf logout      # remove the token; the cached meal plan ID stays
+sf logout      # remove the stored session completely
 ```
 
 Instead of `auth.json` you can provide the token through the environment variable
@@ -138,3 +179,17 @@ print their JSON result. The full list is in the [CLI reference](cli.md).
 - All commands: [CLI reference](cli.md)
 - All settings: [Configuration](configuration.md)
 - Something failed: [Troubleshooting](troubleshooting.md)
+
+## From source
+
+```bash
+git clone https://github.com/derdennis1012/unofficial-samsung-food-mcp.git
+cd unofficial-samsung-food-mcp
+npm install
+npm link          # optional: puts `sf` and `unofficial-samsung-food-mcp` on your PATH
+node bin/sf.js setup --local
+```
+
+Without `npm link`, replace `sf` in all examples with `node bin/sf.js`, and start the MCP server
+with `node src/index.js`. `sf help` runs without login and network. Working on the code:
+[CONTRIBUTING.md](../CONTRIBUTING.md).

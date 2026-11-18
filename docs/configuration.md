@@ -13,6 +13,8 @@ in the `env` block of your MCP client ([MCP clients](mcp-clients.md)).
 | `SAMSUNG_FOOD_API_KEY` | API key for the [local HTTP API](http-api.md) (`sf serve`), at least 16 characters. Overrides the `api-key` file and is not written to disk. | unset (a key is generated and stored) |
 | `SAMSUNG_FOOD_APP_VERSION` | Value of the `x-whisk-app-version` header. The built-in default is a fixed value because the real one is a constant inside a minified bundle; set this if Samsung starts rejecting the default. | `2.88.0` |
 
+The hosted connector (`sf host`) has its own `SF_HOST_*` variables, see [Hosted connector](hosted.md#configuration).
+
 Invalid numbers (not a number, or negative) for the two numeric variables fall back to the default.
 The variables are read when the process starts.
 
