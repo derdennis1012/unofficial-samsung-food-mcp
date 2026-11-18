@@ -185,7 +185,7 @@ test('updateRecipe loads the recipe, merges the changes and sends the whole payl
   assert.equal(sent.payload.name, 'New name');
   assert.equal(sent.payload.servings, 6);
   assert.equal(sent.payload.description, 'Old description');
-  assert.deepEqual(sent.payload.ingredients, [{ text: '2 eggs' }, { text: '100 g flour', group: 'Dough' }]);
+  assert.deepEqual(sent.payload.ingredients, [{ text: '2 eggs', id: '0' }, { text: '100 g flour', group: 'Dough', id: '1' }], 'ingredient ids are kept');
   assert.deepEqual(sent.payload.instructions, [{ text: 'Mix', group: 'Dough' }, { text: 'Bake' }]);
   assert.deepEqual(sent.payload.images, [{ url: 'https://example.com/o.jpg' }]);
   assert.deepEqual(sent.payload.source, { displayName: 'Example', sourceRecipeUrl: 'https://example.com/r' });
@@ -210,6 +210,104 @@ test('updateRecipe replaces ingredients, refuses foreign recipes and empty updat
   assert.equal(calls.length, before + 1, 'only the read happened, no update was sent');
   await assert.rejects(() => sf.updateRecipe('107own', {}), /nothing to update/);
   assert.equal(calls.length, before + 1);
+});
+
+test('updateRecipe sends back step images, intents, ingredient links, videos and aiFeatures unchanged', async () => {
+  // Schema slice shaped like the live one (the fixture lacks these fields): read and write steps differ.
+  const F = (n, name, type, extra = {}) => ({ n, name, type, ...extra });
+  const dict = [F(1, 'name', 'string'), F(2, 'displayName', 'string')];
+  const big = {
+    rpcs: {
+      [`${R}RecipeAPI/GetRecipe`]: {
+        request: [F(1, 'recipeId', 'string'), F(2, 'recipeMask', 'message', { ref: 'mask' })],
+        response: [F(1, 'recipe', 'message', { ref: 'recipe' })],
+      },
+      [`${R}RecipeAPI/UpdateRecipe`]: {
+        request: [F(1, 'recipeId', 'string'), F(2, 'recipeMask', 'message', { ref: 'mask' }), F(3, 'updateMask', 'message', { ref: 'mask' }), F(4, 'payload', 'message', { ref: 'payload' })],
+        response: [F(1, 'recipe', 'message', { ref: 'recipe' })],
+      },
+    },
+    messages: {
+      mask: [F(1, 'paths', 'string', { repeated: true })],
+      dict,
+      ing: [F(1, 'text', 'string'), F(2, 'group', 'string'), F(3, 'id', 'string')],
+      img: [F(1, 'url', 'string'), F(2, 'width', 'int32'), F(3, 'height', 'int32')],
+      ai: [F(1, 'personalized', 'bool'), F(2, 'generatedFromScan', 'bool')],
+      video: [F(1, 'youtubeVideo', 'message', { ref: 'yt' })],
+      yt: [F(1, 'id', 'string')],
+      recipe: [
+        F(1, 'id', 'string'), F(2, 'name', 'string'), F(4, 'ingredients', 'message', { ref: 'ing', repeated: true }),
+        F(5, 'instructions', 'message', { ref: 'rInstr' }), F(14, 'language', 'string'), F(15, 'user', 'message', { ref: 'user' }),
+        F(16, 'nutrition', 'message', { ref: 'img' }), F(29, 'videos', 'message', { ref: 'video', repeated: true }), F(31, 'aiFeatures', 'message', { ref: 'ai' }),
+      ],
+      user: [F(1, 'owner', 'bool')],
+      rInstr: [F(1, 'steps', 'message', { ref: 'rStep', repeated: true })],
+      rStep: [F(1, 'text', 'string'), F(2, 'group', 'string'), F(4, 'image', 'message', { ref: 'img' }), F(3, 'analysis', 'message', { ref: 'rAnalysis' })],
+      rAnalysis: [F(1, 'intents', 'message', { ref: 'rIntent', repeated: true }), F(2, 'ingredientIds', 'string', { repeated: true })],
+      rIntent: [F(1, 'device', 'message', { ref: 'rDevice' }), F(2, 'mode', 'message', { ref: 'dict' }), F(3, 'attributes', 'message', { ref: 'rAttr', repeated: true })],
+      rDevice: [F(1, 'name', 'message', { ref: 'dict' })],
+      rAttr: [F(1, 'type', 'enum'), F(5, 'name', 'message', { ref: 'dict' }), F(2, 'intValue', 'message', { ref: 'rInt' })],
+      rInt: [F(1, 'value', 'int32'), F(2, 'unit', 'message', { ref: 'dict' })],
+      payload: [
+        F(1, 'name', 'string'), F(3, 'ingredients', 'message', { ref: 'ing', repeated: true }), F(4, 'instructions', 'message', { ref: 'wStep', repeated: true }),
+        F(9, 'language', 'string'), F(10, 'videos', 'message', { ref: 'video', repeated: true }), F(11, 'aiFeatures', 'message', { ref: 'ai' }),
+      ],
+      wStep: [F(1, 'text', 'string'), F(2, 'group', 'string'), F(4, 'image', 'message', { ref: 'img' }), F(3, 'intents', 'message', { ref: 'wIntent', repeated: true }), F(5, 'rawIngredientIds', 'string', { repeated: true })],
+      wIntent: [F(1, 'device', 'string'), F(2, 'mode', 'string'), F(3, 'attributes', 'message', { ref: 'wAttr', repeated: true })],
+      wAttr: [F(1, 'name', 'string'), F(2, 'type', 'enum'), F(3, 'intValue', 'message', { ref: 'wInt' })],
+      wInt: [F(1, 'value', 'int32'), F(2, 'unitName', 'string')],
+    },
+  };
+  const calls = [];
+  const sf = new SamsungFood({
+    schema: big,
+    token: 'fake',
+    transport: {
+      call: async (method, payload) => {
+        const rpc = sf.codec.rpc(method);
+        calls.push({ method, request: sf.codec.decodeMessage(rpc.request, payload) });
+        const recipe = {
+          id: '107own',
+          name: 'Soup',
+          language: 'en',
+          user: { owner: true },
+          nutrition: { url: 'read-only' },
+          ingredients: [{ id: 'i0', text: '1 onion' }],
+          instructions: {
+            steps: [
+              {
+                text: 'Chop',
+                image: { url: 'https://img/step.jpg', width: 10, height: 20 },
+                analysis: {
+                  ingredientIds: ['i0'],
+                  intents: [{ device: { name: { name: 'oven' } }, mode: { name: 'bake', displayName: 'Bake' }, attributes: [{ type: 1, name: { name: 'temperature' }, intValue: { value: 180, unit: { name: 'celsius' } } }] }],
+                },
+              },
+            ],
+          },
+          videos: [{ youtubeVideo: { id: 'yt1' } }],
+          aiFeatures: { personalized: true, generatedFromScan: false },
+        };
+        return sf.codec.encodeMessage(rpc.response, { recipe });
+      },
+    },
+  });
+  const out = await sf.updateRecipe('107own', { name: 'Better soup' });
+  const sent = calls[1].request.payload;
+  assert.equal(sent.name, 'Better soup');
+  assert.deepEqual(sent.ingredients, [{ id: 'i0', text: '1 onion' }]);
+  assert.deepEqual(sent.instructions, [
+    {
+      text: 'Chop',
+      image: { url: 'https://img/step.jpg', width: 10, height: 20 },
+      rawIngredientIds: ['i0'],
+      intents: [{ device: 'oven', mode: 'bake', attributes: [{ name: 'temperature', type: 1, intValue: { value: 180, unitName: 'celsius' } }] }],
+    },
+  ]);
+  assert.deepEqual(sent.videos, [{ youtubeVideo: { id: 'yt1' } }]);
+  assert.deepEqual(sent.aiFeatures, { personalized: true, generatedFromScan: false });
+  assert.equal(sent.nutrition, undefined, 'read-only fields are not sent');
+  assert.equal(out.warnings, undefined);
 });
 
 test('rateRecipe, postReview, getReview, deleteReview', async () => {

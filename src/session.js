@@ -58,7 +58,11 @@ export async function ensureFreshToken({ codec, transport, warn = (m) => process
   if (process.env.SAMSUNG_FOOD_TOKEN || !needsRenewal(auth)) return auth.accessToken;
   if (Date.now() - lastFailure < RETRY_AFTER_FAILURE_MS) return auth.accessToken;
 
-  inflight ??= (async () => {
+  if (inflight) return inflight;
+  // Assign first, then attach the cleanup: if the body finished before the assignment (all of it can
+  // run synchronously), a `finally` inside it would reset `inflight` too early and the settled
+  // promise would stay cached forever.
+  const p = (async () => {
     try {
       const again = requireToken();
       if (!needsRenewal(again)) return again.accessToken;
@@ -68,11 +72,13 @@ export async function ensureFreshToken({ codec, transport, warn = (m) => process
       lastFailure = Date.now();
       warn(`samsung-food: token renewal failed (${err.message}); continuing with the current token.`);
       return requireToken().accessToken;
-    } finally {
-      inflight = null;
     }
   })();
-  return inflight;
+  inflight = p;
+  p.finally(() => {
+    if (inflight === p) inflight = null;
+  }).catch(() => {});
+  return p;
 }
 
 /**

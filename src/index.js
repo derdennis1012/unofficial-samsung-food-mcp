@@ -24,7 +24,7 @@ process.on('uncaughtException', (err) => log(`uncaught exception: ${err?.message
 const holder = clientHolder();
 
 const server = new Server(
-  { name: 'samsung-food', version },
+  { name: 'unofficial-samsung-food-mcp', version },
   { capabilities: { tools: {} } }
 );
 

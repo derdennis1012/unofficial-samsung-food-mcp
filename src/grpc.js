@@ -6,6 +6,8 @@
  * The HTTP status is always 200 - the real status is in the trailer as grpc-status.
  */
 
+import { USER_AGENT } from './version.js';
+
 export const GRPC_STATUS = {
   0: 'OK',
   1: 'CANCELLED',
@@ -183,8 +185,7 @@ export class GrpcWebTransport {
       pragma: 'no-cache',
       origin: this.origin,
       referer: `${this.origin}/`,
-      'user-agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36',
+      'user-agent': USER_AGENT,
     };
     // The web app sends the login-domain AuthAPI calls without these two headers.
     if (!opts.bare) {
@@ -226,7 +227,9 @@ export class GrpcWebTransport {
     }
 
     if (res.status !== 200) {
-      const err = new GrpcError(res.status === 429 ? 8 : 2, `HTTP ${res.status} ${res.statusText}`, method);
+      // 401/403 map to UNAUTHENTICATED/PERMISSION_DENIED so callers can show the login hint.
+      const code = { 401: 16, 403: 7, 429: 8 }[res.status] ?? 2;
+      const err = new GrpcError(code, `HTTP ${res.status} ${res.statusText}`, method);
       err.httpStatus = res.status;
       const retryAfter = parseRetryAfter(res.headers.get('retry-after'));
       if (retryAfter) err.retryAfterMs = retryAfter;
@@ -259,17 +262,25 @@ export class GrpcWebTransport {
       throw new TransportError(`Incomplete response: no grpc-status received [${method}]`, { reachedServer: true });
     }
     const code = status == null ? 0 : Number(status);
-    if (code !== 0) throw new GrpcError(code, decodeURIComponent(message ?? ''), method);
+    if (code !== 0) throw new GrpcError(code, safeDecode(message ?? ''), method);
 
     return data ?? Buffer.alloc(0);
+  }
+}
+
+/** grpc-message is percent-encoded; a bare "%" must not turn into a URIError. */
+function safeDecode(v) {
+  try {
+    return decodeURIComponent(v);
+  } catch {
+    return v;
   }
 }
 
 function randomUuid() {
   return globalThis.crypto?.randomUUID
     ? globalThis.crypto.randomUUID()
-    : // eslint-disable-next-line no-bitwise
-      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
         const r = (Math.random() * 16) | 0;
         return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
       });

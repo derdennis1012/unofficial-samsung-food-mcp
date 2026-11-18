@@ -6,7 +6,6 @@
  * addRecipeToList, checkListItem, checkListItems, deleteListItems, collections, collectionRecipes, createCollection.
  */
 
-import { updateAuth } from '../auth.js';
 import { tidyNumber, CATEGORY_LABEL } from '../client.js';
 
 const LIST = 'whisk.x.list.v1.';
@@ -135,7 +134,6 @@ export const methods = {
     if (target.isPrimary) return { listId, previousPrimaryId: previous, changed: false };
     await this.call(`${LIST}ListAPI/SetPrimaryList`, { listId });
     this._cache.listId = listId;
-    updateAuth({ listId });
     return { listId, previousPrimaryId: previous, changed: true };
   },
 

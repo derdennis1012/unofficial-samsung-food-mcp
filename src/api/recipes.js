@@ -21,6 +21,60 @@ export const SORT_DIRECTION = { oldest: 1, newest: 2 };
 
 /* --------------------------------------------------------------- helpers */
 
+/** Copies the fields of `value` that the message `ref` knows, recursively; shape mismatches fall away. */
+function projectMessage(codec, ref, value) {
+  const out = {};
+  for (const f of codec.fieldsOf(ref)) {
+    const v = projectField(codec, f, value?.[f.name]);
+    if (v !== undefined) out[f.name] = v;
+  }
+  return out;
+}
+
+function projectField(codec, f, v) {
+  if (v === undefined || v === null) return undefined;
+  if (f.repeated) {
+    if (!Array.isArray(v)) return undefined;
+    const items = v.map((x) => projectField(codec, { ...f, repeated: false }, x)).filter((x) => x !== undefined);
+    return items.length ? items : undefined;
+  }
+  if (Array.isArray(v)) return undefined;
+  if (f.type === 'message') {
+    if (typeof v !== 'object') return undefined;
+    const sub = projectMessage(codec, f.ref, v);
+    return Object.keys(sub).length ? sub : undefined;
+  }
+  if (typeof v === 'object' && !Buffer.isBuffer(v)) return undefined;
+  return v;
+}
+
+/** {name: {name}} -> name (the read side wraps dictionary values in {name, displayName}). */
+const dictName = (x) => x?.name?.name ?? x?.name ?? undefined;
+
+/** A read-side instruction step (with `analysis`) in the shape UpdateRecipe expects. */
+function writeStep(step) {
+  const { analysis, ...rest } = step ?? {};
+  return {
+    ...rest,
+    ...(analysis?.ingredientIds?.length ? { rawIngredientIds: analysis.ingredientIds } : {}),
+    ...(analysis?.intents?.length
+      ? {
+          intents: analysis.intents.map((i) => ({
+            device: dictName(i.device),
+            mode: dictName(i.mode),
+            attributes: (i.attributes ?? []).map((a) => ({
+              name: dictName(a),
+              type: a.type,
+              ...(a.intValue ? { intValue: { value: a.intValue.value, unitName: dictName(a.intValue.unit) } } : {}),
+              ...(a.doubleValue ? { doubleValue: { value: a.doubleValue.value, unitName: dictName(a.doubleValue.unit) } } : {}),
+              ...(a.stringValue ? { stringValue: { value: dictName(a.stringValue.value), unitName: dictName(a.stringValue.unit) } } : {}),
+            })),
+          })),
+        }
+      : {}),
+  };
+}
+
 const imageOf = (r) => r?.images?.[0]?.responsive?.url ?? r?.images?.[0]?.original?.url ?? r?.images?.[0]?.url ?? null;
 
 /** Compact recipe summary used by all list-returning methods in this file. */
@@ -89,7 +143,8 @@ export const methods = {
   /**
    * Partial update of one of your own recipes. UpdateRecipe only accepts the whole payload
    * (update mask "payload"), so the current recipe is loaded and the changes are merged in;
-   * everything else (groups, images, source, times) is sent back unchanged.
+   * everything else the payload knows (ingredient ids and groups, step images/intents/ingredient
+   * links, images, source, times, videos, AI flags) is sent back unchanged.
    */
   async updateRecipe(recipeId, changes = {}) {
     const { name, description, ingredients, instructions, servings, cookTime, prepTime, images, sourceName, sourceUrl } = changes;
@@ -108,40 +163,49 @@ export const methods = {
       throw new Error('This is not your own recipe, only recipes you created can be updated');
     }
 
-    const txt = (t) => (typeof t === 'string' ? { text: t } : t);
-    const payload = {
-      name: name ?? cur.name,
-      ...((description ?? cur.description) ? { description: description ?? cur.description } : {}),
-      ingredients: ingredients
-        ? ingredients.map(txt)
-        : (cur.ingredients ?? []).map((i) => ({ text: i.text, ...(i.group ? { group: i.group } : {}) })),
-      instructions: instructions
-        ? instructions.map(txt)
-        : (cur.instructions?.steps ?? []).map((s) => ({ text: s.text, ...(s.group ? { group: s.group } : {}) })),
-      language: cur.language || this.locale.split('-')[0].toLowerCase(),
+    // Start from a copy of everything the stored recipe has that UpdateRecipe's payload knows
+    // (read-only fields such as id, nutrition or reviews are not part of it and fall away).
+    const payloadField = this.codec.rpc(RECIPE_API + 'UpdateRecipe').request.find((f) => f.name === 'payload');
+    const readShaped = {
+      ...cur,
+      // The read side nests steps and step analysis differently than the write side.
+      instructions: (cur.instructions?.steps ?? []).map(writeStep),
+      images: (cur.images ?? []).map((i) => ({ url: i.original?.url ?? i.responsive?.url })).filter((i) => i.url),
     };
-    const imgs = images
-      ? images.map((u) => ({ url: u }))
-      : (cur.images ?? []).map((i) => ({ url: i.original?.url ?? i.responsive?.url })).filter((i) => i.url);
-    if (imgs.length) payload.images = imgs;
-    const srcName = sourceName ?? cur.source?.displayName;
-    const srcUrl = sourceUrl ?? cur.source?.sourceRecipeUrl;
-    if (srcName || srcUrl) {
+    const payload = projectMessage(this.codec, payloadField.ref, readShaped);
+
+    const txt = (t) => (typeof t === 'string' ? { text: t } : t);
+    if (name !== undefined) payload.name = name;
+    if (description !== undefined) payload.description = description;
+    if (!payload.description) delete payload.description;
+    if (ingredients) payload.ingredients = ingredients.map(txt);
+    if (instructions) payload.instructions = instructions.map(txt);
+    if (images) payload.images = images.map((u) => ({ url: u }));
+    payload.ingredients ??= [];
+    payload.instructions ??= [];
+    payload.language ||= this.locale.split('-')[0].toLowerCase();
+    if (sourceName !== undefined || sourceUrl !== undefined) {
+      const srcName = sourceName ?? payload.source?.displayName;
+      const srcUrl = sourceUrl ?? payload.source?.sourceRecipeUrl;
       payload.source = { ...(srcName ? { displayName: srcName } : {}), ...(srcUrl ? { sourceRecipeUrl: srcUrl } : {}) };
     }
-    const sv = servings ?? cur.servings;
-    if (sv) payload.servings = sv;
-    const ck = cookTime ?? cur.durations?.cookTime;
-    const pt = prepTime ?? cur.durations?.prepTime;
-    if (ck || pt) payload.durations = { ...(ck ? { cookTime: ck } : {}), ...(pt ? { prepTime: pt } : {}) };
+    if (servings !== undefined) payload.servings = servings;
+    if (cookTime !== undefined || prepTime !== undefined) {
+      const ck = cookTime ?? payload.durations?.cookTime;
+      const pt = prepTime ?? payload.durations?.prepTime;
+      payload.durations = { ...(ck ? { cookTime: ck } : {}), ...(pt ? { prepTime: pt } : {}) };
+    }
 
+    // Probe-encode every carried-over field: one the codec cannot encode is dropped with a warning
+    // instead of failing the whole update.
     const warnings = [];
-    if (cur.videos?.length) {
+    for (const key of Object.keys(payload)) {
+      if (touched.includes(key)) continue;
       try {
-        this.codec.encodeRequest(RECIPE_API + 'UpdateRecipe', { recipeId, payload: { videos: cur.videos } });
-        payload.videos = cur.videos;
+        this.codec.encodeRequest(RECIPE_API + 'UpdateRecipe', { recipeId, payload: { [key]: payload[key] } });
       } catch {
-        warnings.push('The recipe has videos that could not be preserved and were dropped');
+        delete payload[key];
+        warnings.push(`The recipe's ${key} could not be preserved and was dropped`);
       }
     }
 

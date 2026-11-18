@@ -14,7 +14,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { writeFileAtomic } from './fsutil.js';
 
-export const CONFIG_DIR = process.env.SAMSUNG_FOOD_HOME ?? path.join(os.homedir(), '.samsung-food');
+// An empty value falls back to the default; a relative one is resolved against the working directory.
+export const CONFIG_DIR = path.resolve(process.env.SAMSUNG_FOOD_HOME || path.join(os.homedir(), '.samsung-food'));
 export const AUTH_FILE = path.join(CONFIG_DIR, 'auth.json');
 
 /** decodeURIComponent that tolerates malformed escapes. */
@@ -70,7 +71,7 @@ export function saveAuth(data) {
   return AUTH_FILE;
 }
 
-export const LOGIN_HINT = 'Samsung Food login missing or expired. Run `sf login` (see README).';
+export const LOGIN_HINT = 'Samsung Food login missing or expired. Run `sf login` (see docs/getting-started.md).';
 
 export function requireToken() {
   const auth = loadAuth();
@@ -85,7 +86,7 @@ export function updateAuth(patch) {
   return saveAuth({ ...current, ...patch });
 }
 
-/** Removes the session fields only; cached ids (mealPlanId, listId) stay. */
+/** Removes the session fields only; the cached mealPlanId stays. */
 export function clearToken() {
   const { accessToken, expiresAt, renewedAt, savedAt, ...rest } = readAuthFile() ?? {};
   saveAuth(rest);

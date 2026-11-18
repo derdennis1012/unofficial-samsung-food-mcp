@@ -171,3 +171,71 @@ test('idempotentHint is false for every tool that can create or append data', ()
     }
   }
 });
+
+/* ---- api_call guard rails */
+
+test('api_call refuses AuthAPI and account-credential methods without calling the API', async () => {
+  const apiCall = TOOLS.find((t) => t.name === 'api_call');
+  const called = [];
+  const sf = { call: async (m) => (called.push(m), {}) };
+  for (const m of [
+    'whisk.x.user.v1.AuthAPI/IssueAuthCode',
+    'whisk.x.user.v1.AuthAPI/UseAuthCode',
+    'whisk.x.user.v1.AuthAPI/Login',
+    'whisk.x.user.v1.AuthAPI/UseResetPasswordCode',
+    'whisk.x.user.v1.UserAPI/UpdateEmail',
+    'whisk.x.user.v1.UserAPI/UpdatePhone',
+    'whisk.x.user.v1.UserAPI/UpdatePassword',
+    'whisk.x.user.v1.UserAPI/CreatePassword',
+    'whisk.x.user.v1.UserAPI/DeleteMe',
+    'whisk.x.user.v2.NutritionPlusSamsungHealthLinkingAPI/ExchangeSamsungAccountCode',
+  ]) {
+    await assert.rejects(apiCall.handler({ method: m }, sf), /api_call refuses .*blocked/, m);
+  }
+  assert.deepEqual(called, []);
+  await apiCall.handler({ method: 'whisk.x.user.v1.UserAPI/GetMe' }, sf);
+  await apiCall.handler({ method: 'whisk.x.user.v1.UserAPI/UpdateSettings', request: {} }, sf);
+  assert.deepEqual(called, ['whisk.x.user.v1.UserAPI/GetMe', 'whisk.x.user.v1.UserAPI/UpdateSettings']);
+  assert.match(apiCall.description, /AuthAPI.*refused/);
+});
+
+test('api_call redacts secrets in results, recursively, and keeps ordinary codes', async () => {
+  const apiCall = TOOLS.find((t) => t.name === 'api_call');
+  const result = {
+    authenticated: { token: { accessToken: 'AAA', refreshToken: 'RRR', expiresIn: 1209600 } },
+    authCodeIssued: { code: 'short1' },
+    session: { authCode: 'XYZ', password: 'hunter2' },
+    list: [{ nested: { token: 'TTT', idToken: 'III' } }, { code: 'abcdefghijklmnopqrstuvwxyz0123' }],
+    nutrition: [{ code: { name: 'ENERC_KCAL' } }],
+    location: { code: 1 },
+    country: { code: 'DE' },
+    nextPageToken: 'page-2',
+    name: 'kept',
+  };
+  const out = await apiCall.handler({ method: 'whisk.x.user.v1.UserAPI/GetMe' }, { call: async () => result });
+  assert.equal(out.authenticated.token, '[redacted]');
+  assert.equal(out.authCodeIssued.code, '[redacted]', 'code inside an auth-ish message');
+  assert.deepEqual(out.session, { authCode: '[redacted]', password: '[redacted]' });
+  assert.deepEqual(out.list[0].nested, { token: '[redacted]', idToken: '[redacted]' });
+  assert.equal(out.list[1].code, '[redacted]', 'long opaque code');
+  assert.deepEqual(out.nutrition, [{ code: { name: 'ENERC_KCAL' } }]);
+  assert.deepEqual(out.location, { code: 1 });
+  assert.deepEqual(out.country, { code: 'DE' });
+  assert.equal(out.nextPageToken, 'page-2');
+  assert.equal(out.name, 'kept');
+  assert.equal(result.session.password, 'hunter2', 'the input is not mutated');
+});
+
+test('JSON schemas: draft 2020-12 without $schema, unions and refined fields keep their types', () => {
+  const byName = Object.fromEntries(TOOLS.map((t) => [t.name, toJsonSchema(t.schema)]));
+  for (const [name, js] of Object.entries(byName)) assert.equal(js.$schema, undefined, name);
+  const ops = byName.shopping_list_favorites_modify.properties.ops;
+  assert.deepEqual(ops.items.oneOf.map((o) => o.properties.op.const), ['create', 'update', 'delete']);
+  assert.equal(ops.items.oneOf[0].additionalProperties, false);
+  // Fields with a default are optional on input and keep the default; refined dates keep the pattern.
+  const plan = byName.meal_plan_get;
+  assert.ok(!(plan.required ?? []).includes('days'));
+  assert.equal(plan.properties.from.pattern, '^\\d{4}-\\d{2}-\\d{2}$');
+  // zod's implicit safe-integer bounds are not emitted.
+  assert.doesNotMatch(JSON.stringify(byName), /9007199254740991/);
+});

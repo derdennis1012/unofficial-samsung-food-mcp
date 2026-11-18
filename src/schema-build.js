@@ -19,11 +19,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { CONFIG_DIR } from './auth.js';
 import { writeFileAtomic } from './fsutil.js';
+import { USER_AGENT } from './version.js';
 
 export const SCHEMA_FILE = path.join(CONFIG_DIR, 'schema.json');
 export const APP_URL = 'https://app.samsungfood.com/';
 const BUNDLE_RE = /https:\/\/cdn\.whisk\.com\/[^"]*main-[^"]*\.js/g;
-const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36';
 
 /* ------------------------------------------------------------------ Extraction */
 
@@ -148,7 +148,6 @@ export function resolve(msgs, rpcs) {
     const out = [];
     for (const f of list ?? []) {
       const [num, name, t] = f;
-      const repeated = f.length > 3 && f[3] === 1;
       const oneof = f.length > 4 ? f[4] : null;
       const [k, d] = typ(file, t);
       const e = { n: num, name };
@@ -211,12 +210,22 @@ export function resolve(msgs, rpcs) {
 const FETCH_TIMEOUT_MS = 30000;
 const BUILD_BUDGET_MS = 120000;
 
+/** Explains a 403/429/503 that comes from Cloudflare's bot protection instead of the app. */
+export function blockedHint(res) {
+  const cf = res.headers?.get?.('cf-mitigated') || /cloudflare/i.test(res.headers?.get?.('server') ?? '');
+  if (![403, 429, 503].includes(res.status) && !cf) return '';
+  return (
+    `${cf ? ' (blocked by Cloudflare bot protection)' : ''}. Samsung Food's CDN refused the download; ` +
+    'this is usually temporary. Wait a few minutes and run `sf schema update` again, preferably from a different network if it persists.'
+  );
+}
+
 async function fetchText(url, fetchImpl) {
   const res = await fetchImpl(url, {
     headers: { 'user-agent': USER_AGENT, accept: '*/*' },
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
-  if (!res.ok) throw new Error(`GET ${url} failed: HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`GET ${url} failed: HTTP ${res.status}${blockedHint(res)}`);
   return res.text();
 }
 

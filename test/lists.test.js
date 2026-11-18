@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 
 import { tmpHome } from './setup.js';
@@ -234,20 +233,19 @@ test('copyShoppingList', async () => {
   assert.deepEqual([out.id, out.name, out.itemCount], [L2, 'Copy of Home', 1]);
 });
 
-test('setPrimaryShoppingList changes the primary and the cached list id only when needed', async () => {
+test('setPrimaryShoppingList changes the primary and the in-process list id only when needed', async () => {
   const authFile = path.join(tmpHome, 'auth.json');
-  fs.writeFileSync(authFile, JSON.stringify({ accessToken: 'fake', listId: L1 }));
+  fs.writeFileSync(authFile, JSON.stringify({ accessToken: 'fake' }));
   const { sf, calls } = makeClient({ 'ListAPI/GetLists': getLists, 'ListAPI/SetPrimaryList': {} });
 
   const same = await sf.setPrimaryShoppingList(L1);
   assert.deepEqual(same, { listId: L1, previousPrimaryId: L1, changed: false });
   assert.equal(callsOf(calls, 'ListAPI/SetPrimaryList').length, 0);
-  assert.equal(JSON.parse(fs.readFileSync(authFile, 'utf8')).listId, L1);
 
   const changed = await sf.setPrimaryShoppingList(L2);
   assert.deepEqual(changed, { listId: L2, previousPrimaryId: L1, changed: true });
   assert.deepEqual(callsOf(calls, 'ListAPI/SetPrimaryList').map((c) => c.request), [{ listId: L2 }]);
-  assert.equal(JSON.parse(fs.readFileSync(authFile, 'utf8')).listId, L2);
+  assert.equal(JSON.parse(fs.readFileSync(authFile, 'utf8')).listId, undefined, 'never persisted');
   assert.equal(await sf.primaryListId(), L2);
 
   await assert.rejects(sf.setPrimaryShoppingList('106zzz'), /not found/);
@@ -489,4 +487,48 @@ test('a lost update is detected and the read-modify-write is repeated once', asy
   const out = await sf.addRecipesToCollection(C1, [R1]);
   assert.deepEqual(out.added, [R1]);
   assert.ok(recipes[R1].collections.includes(C1) && recipes[R1].collections.includes('10501gggggggggggggggggggggggggggggg'));
+});
+
+test('primaryListId: a stale persisted value is ignored and removed, the id is not persisted', async () => {
+  const authFile = path.join(tmpHome, 'auth.json');
+  fs.writeFileSync(authFile, JSON.stringify({ accessToken: 'fake', mealPlanId: 'mp', listId: '10601stale' }));
+  const { sf, calls } = makeClient({ 'ListAPI/GetLists': getLists });
+  assert.equal(await sf.primaryListId(), L1);
+  assert.equal(callsOf(calls, 'ListAPI/GetLists').length, 1);
+  assert.deepEqual(JSON.parse(fs.readFileSync(authFile, 'utf8')), { accessToken: 'fake', mealPlanId: 'mp' });
+  assert.equal(await sf.primaryListId(), L1);
+  assert.equal(callsOf(calls, 'ListAPI/GetLists').length, 1, 'cached in process');
+});
+
+test('a NOT_FOUND for the cached primary list re-fetches the lists once and retries', async () => {
+  const { GrpcError } = await import('../src/grpc.js');
+  let primary = L1;
+  const { sf, calls } = makeClient({
+    'ListAPI/GetLists': () => ({ lists: [{ list: { id: primary, name: 'Home', primary: true } }] }),
+    'ListAPI/GetList': (req) => {
+      if (req.listId !== primary) throw new GrpcError(5, 'ERROR_LIST_NOT_FOUND', 'GetList');
+      return { list: { id: primary, name: 'Home' } };
+    },
+  });
+  assert.equal(await sf.primaryListId(), L1);
+  primary = L2; // the primary list was replaced elsewhere
+  assert.equal((await sf.listItems()).listId, L2);
+  assert.deepEqual(callsOf(calls, 'ListAPI/GetList').map((c) => c.request.listId), [L1, L2]);
+  assert.equal(callsOf(calls, 'ListAPI/GetLists').length, 2);
+  assert.equal(await sf.primaryListId(), L2);
+
+  // NOT_FOUND although the list still exists: surfaced, not retried endlessly
+  const { sf: sf2, calls: calls2 } = makeClient({
+    'ListAPI/GetLists': getLists,
+    'ListAPI/GetList': () => {
+      throw new GrpcError(5, 'ERROR_SOMETHING_NOT_FOUND', 'GetList');
+    },
+  });
+  await assert.rejects(sf2.listItems(), /ERROR_SOMETHING_NOT_FOUND/);
+  assert.equal(callsOf(calls2, 'ListAPI/GetList').length, 1);
+  assert.equal(callsOf(calls2, 'ListAPI/GetLists').length, 2, 're-validated once');
+  // an explicit listId is never re-resolved
+  await assert.rejects(sf2.listItems(L2), /ERROR_SOMETHING_NOT_FOUND/);
+  assert.equal(callsOf(calls2, 'ListAPI/GetList').length, 2);
+  assert.equal(callsOf(calls2, 'ListAPI/GetLists').length, 2);
 });

@@ -31,7 +31,7 @@ class Writer {
   }
 
   varint(v) {
-    let n = typeof v === 'bigint' ? v : BigInt(Math.trunc(Number(v)));
+    let n = typeof v === 'bigint' ? v : BigInt(v);
     if (n < 0n) n += 1n << 64n; // negative int32/int64 are encoded as a 10-byte varint
     const out = [];
     do {
@@ -85,6 +85,16 @@ class Reader {
     return this.pos >= this.buf.length;
   }
 
+  /** Advances by n bytes; a length that runs past the end means a corrupt or mismatched message. */
+  advance(n) {
+    if (!Number.isSafeInteger(n) || n < 0 || this.pos + n > this.buf.length) {
+      throw new Error(`length ${n} overruns buffer at offset ${this.pos} (size ${this.buf.length})`);
+    }
+    const start = this.pos;
+    this.pos += n;
+    return start;
+  }
+
   varint() {
     let result = 0n;
     let shift = 0n;
@@ -105,20 +115,29 @@ class Reader {
         this.varint();
         break;
       case WIRE.I64:
-        this.pos += 8;
+        this.advance(8);
         break;
-      case WIRE.LEN: {
-        const len = Number(this.varint());
-        this.pos += len;
+      case WIRE.LEN:
+        this.advance(Number(this.varint()));
         break;
-      }
       case WIRE.I32:
-        this.pos += 4;
+        this.advance(4);
         break;
       default:
         throw new Error(`unknown wire type ${wire}`);
     }
   }
+}
+
+/**
+ * Validates a value for a varint field. Integers (number, bigint, or a decimal string such as an
+ * int64 id) pass; NaN, fractions and other strings are rejected with the field name.
+ */
+function toInteger(v, f) {
+  if (typeof v === 'bigint') return v;
+  if (typeof v === 'number' && Number.isInteger(v)) return v;
+  if (typeof v === 'string' && /^-?\d+$/.test(v.trim())) return BigInt(v.trim()); // no precision loss
+  throw new Error(`Field ${f.name} (${f.type}) expects an integer, got ${typeof v === 'string' ? JSON.stringify(v) : String(v)}`);
 }
 
 /* ------------------------------------------------------------------ Schema */
@@ -130,13 +149,14 @@ export class Codec {
   }
 
   fieldsOf(ref) {
-    const f = this.schema.messages[ref];
+    // Object.hasOwn: names like "constructor" or "toString" must not resolve to prototype members.
+    const f = Object.hasOwn(this.schema.messages, ref) ? this.schema.messages[ref] : undefined;
     if (!f) throw new Error(`unknown message: ${ref}`);
     return f;
   }
 
   rpc(method) {
-    const r = this.schema.rpcs[method];
+    const r = Object.hasOwn(this.schema.rpcs, method) ? this.schema.rpcs[method] : undefined;
     if (!r) throw new Error(`unknown method: ${method}`);
     return r;
   }
@@ -167,6 +187,7 @@ export class Codec {
         if (!Array.isArray(v)) throw new Error(`Field ${f.name} expects an array`);
         for (const item of v) this.encodeField(w, f, item);
       } else {
+        if (Array.isArray(v)) throw new Error(`Field ${f.name} is not repeated and does not accept an array`);
         this.encodeField(w, f, v);
       }
     }
@@ -183,7 +204,7 @@ export class Codec {
       case 'wrapper': {
         // google.protobuf.XValue: message with a single field 1
         const inner = new Writer();
-        this.encodeField(inner, { n: 1, type: f.value }, v);
+        this.encodeField(inner, { n: 1, name: f.name, type: f.value }, v);
         w.tag(f.n, WIRE.LEN).bytes(inner.finish());
         break;
       }
@@ -207,7 +228,7 @@ export class Codec {
       case 'uint32':
       case 'uint64':
       case 'enum':
-        w.tag(f.n, WIRE.VARINT).varint(v);
+        w.tag(f.n, WIRE.VARINT).varint(toInteger(v, f));
         break;
       default:
         throw new Error(`cannot encode type ${f.type} (field ${f.name})`);
@@ -232,12 +253,13 @@ export class Codec {
       }
       const expected = f.type === 'message' || f.type === 'wrapper' ? WIRE.LEN : SCALAR_WIRE[f.type];
       let value;
-      if (wire === WIRE.LEN && expected === WIRE.VARINT) {
-        // packed repeated scalars
+      if (wire === WIRE.LEN && (expected === WIRE.VARINT || expected === WIRE.I64 || expected === WIRE.I32)) {
+        // packed repeated scalars (varints, doubles, floats)
         const len = Number(r.varint());
-        const end = r.pos + len;
+        const end = r.advance(len) + len;
+        const packed = new Reader(r.buf.subarray(end - len, end));
         const items = [];
-        while (r.pos < end) items.push(this.readScalar(r, f.type, WIRE.VARINT));
+        while (!packed.eof) items.push(this.readScalar(packed, f.type, expected));
         if (f.repeated) {
           (out[f.name] ||= []).push(...items);
         } else {
@@ -268,9 +290,8 @@ export class Codec {
   }
 
   buf_slice(r, len) {
-    const sub = r.buf.subarray(r.pos, r.pos + len);
-    r.pos += len;
-    return sub;
+    const start = r.advance(len);
+    return r.buf.subarray(start, start + len);
   }
 
   readScalar(r, type, wire) {
@@ -285,24 +306,20 @@ export class Codec {
       }
       case 'bool':
         return r.varint() !== 0n;
-      case 'double': {
-        const v = r.buf.readDoubleLE(r.pos);
-        r.pos += 8;
-        return v;
-      }
-      case 'float': {
-        const v = r.buf.readFloatLE(r.pos);
-        r.pos += 4;
-        return v;
-      }
+      case 'double':
+        return r.buf.readDoubleLE(r.advance(8));
+      case 'float':
+        return r.buf.readFloatLE(r.advance(4));
       case 'int64':
       case 'uint64': {
         const v = r.varint();
         // Return a number within Number.MAX_SAFE_INTEGER, otherwise a string.
         return v <= 9007199254740991n ? Number(v) : v.toString();
       }
-      case 'int32':
       case 'uint32':
+        // never negative: the low 32 bits as an unsigned number
+        return Number(BigInt.asUintN(32, r.varint()));
+      case 'int32':
       case 'enum': {
         const v = r.varint();
         // negative int32 is transmitted as a 64-bit varint

@@ -52,3 +52,12 @@ test('today() default uses the local date of "now"', () => {
   const p = (n) => String(n).padStart(2, '0');
   assert.equal(today(), `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`);
 });
+
+test('impossible calendar days are rejected, not rolled over', () => {
+  for (const d of ['2026-02-31', '2026-02-29', '2026-04-31', '2026-13-01', '2026-00-10', '2026-01-00']) {
+    assert.throws(() => addDays(d, 0), /invalid date/, d);
+    assert.throws(() => toProtoDate(d), /invalid date/, d);
+  }
+  assert.equal(addDays('2028-02-29', 0), '2028-02-29');
+  assert.deepEqual(toProtoDate('2028-02-29'), { year: 2028, month: 2, day: 29 });
+});

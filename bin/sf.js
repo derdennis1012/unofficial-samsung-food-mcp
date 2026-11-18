@@ -19,41 +19,61 @@
  *   sf collections
  *   sf methods [filter]           all API methods
  *   sf describe <method>
- *   sf call <method> '<json>'     raw call
+ *   sf call <method> '<json>'     raw call (same guard and redaction as the MCP api_call)
+ *   sf tools [--json]             all MCP tools with area and access
  *   sf status                     token and schema status
  *   sf schema update              rebuild the API schema
+ *   sf serve [--port 8787] [--read-only]   local HTTP API (REST, OpenAPI, MCP over HTTP)
  */
 
 import process from 'node:process';
 import { spawn, spawnSync } from 'node:child_process';
 import { SamsungFood, MEAL_TIME_LABEL, today } from '../src/client.js';
-import { extractToken, looksLikeCredential, loadAuth, clearToken, requireToken, AUTH_FILE } from '../src/auth.js';
+import { extractToken, looksLikeCredential, clearToken, requireToken, AUTH_FILE } from '../src/auth.js';
 import { loginWithCredential, renewToken, authStatus } from '../src/session.js';
 import { buildSchema, schemaInfo } from '../src/schema-build.js';
+import { VERSION } from '../src/version.js';
+import { assertRawCallAllowed, redactSecrets } from '../src/tools/core.js';
 
-const argv = process.argv.slice(2);
+/** Options that never take a value, so `--yes <id>` keeps <id> as a positional argument. */
+const BOOLEAN_FLAGS = new Set(['yes', 'json', 'open', 'paste', 'dry', 'unscheduled', 'replace', 'read-only', 'allow-raw', 'no-mcp', 'quiet', 'show-key', 'help', 'version']);
+/** Options that always take a value (`--name value` or `--name=value`). */
+const VALUE_FLAGS = new Set(['days', 'from', 'to', 'date', 'meal', 'recipe', 'list', 'limit', 'title', 'servings', 'seed', 'location', 'depth', 'token', 'host', 'port', 'cors']);
 
-/** Extract --key value and --flag from argv; the rest are positional arguments. */
+/** Split argv into known --options and positional arguments; `--` ends the options. */
 function parseArgs(args) {
   const flags = {};
   const positional = [];
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
-    if (a.startsWith('--')) {
-      const key = a.slice(2);
-      const next = args[i + 1];
-      if (next === undefined || next.startsWith('--')) flags[key] = true;
-      else {
-        flags[key] = next;
-        i++;
-      }
-    } else positional.push(a);
+    if (a === '--') {
+      positional.push(...args.slice(i + 1));
+      break;
+    }
+    if (!a.startsWith('--')) {
+      positional.push(a);
+      continue;
+    }
+    const eq = a.indexOf('=');
+    const key = eq === -1 ? a.slice(2) : a.slice(2, eq);
+    if (BOOLEAN_FLAGS.has(key)) {
+      if (eq !== -1) throw new Error(`--${key} takes no value`);
+      flags[key] = true;
+    } else if (VALUE_FLAGS.has(key)) {
+      const value = eq === -1 ? args[++i] : a.slice(eq + 1);
+      if (value === undefined || value === '' || (eq === -1 && value.startsWith('--'))) throw new Error(`--${key} needs a value, e.g. --${key} <value>`);
+      flags[key] = value;
+    } else {
+      throw new Error(`Unknown option --${key}. Run \`sf help\` for the commands and their options.`);
+    }
   }
   return { flags, positional };
 }
 
-const { flags, positional } = parseArgs(argv);
-const [command, sub, ...rest] = positional;
+let flags = {};
+let command;
+let sub;
+let rest = [];
 
 const json = (v) => JSON.stringify(v, null, 2);
 const out = (v) => console.log(typeof v === 'string' ? v : json(v));
@@ -66,6 +86,35 @@ function intFlag(name, def) {
   const n = Number(flags[name]);
   if (!Number.isInteger(n) || n < 1) throw new Error(`--${name} must be a positive whole number`);
   return n;
+}
+
+/** How many things a command removes, for the confirmation prompt. */
+const count = (ids, one, many) => (ids.length === 1 ? `${one} ${ids[0]}` : `${ids.length} ${many}`);
+
+/**
+ * Prompt text for commands that delete or overwrite data, or null. Commands without their required
+ * arguments return null so the usage error comes first.
+ */
+function destructiveAction() {
+  const removes = sub === 'rm' || sub === 'delete';
+  if (command === 'plan') {
+    if (removes && rest.length) return `delete ${count(rest, 'meal', 'meals')}`;
+    if (sub === 'clear') {
+      if (flags.unscheduled) return 'delete ALL unscheduled meals';
+      const from = flags.from ?? today();
+      return `delete all meals ${flags.to ? `from ${from} to ${flags.to}` : `for ${intFlag('days', 7)} day(s) starting ${from}`}`;
+    }
+    if (sub === 'template' || sub === 'templates') {
+      const [action, ...ids] = rest;
+      if ((action === 'rm' || action === 'delete') && ids.length) return `delete ${count(ids, 'template', 'templates')}`;
+      if (action === 'apply' && ids.length && flags.replace) {
+        return `replace the planned meals starting ${flags.date ?? today()} with template ${ids[0]}`;
+      }
+    }
+  }
+  if (command === 'list' && removes && rest.length) return `delete ${count(rest, 'shopping list item', 'shopping list items')}`;
+  if (command === 'pantry' && removes && rest.length) return `delete ${count(rest, 'pantry entry', 'pantry entries')}`;
+  return null;
 }
 
 /** Destructive CLI commands need --yes (or an interactive y/N on a terminal). */
@@ -114,7 +163,7 @@ const LOGIN_HELP = [
   'No token found. To log in:',
   `  1. Log in at ${APP_URL} (any login method works)`,
   '  2. Open the browser DevTools console and run:  copy(document.cookie)',
-  '  3. Run  sf login  again (it reads the clipboard), or pass the text:  sf login "<paste>"',
+  '  3. Run  sf login  again (it reads the clipboard), or  sf login --paste  and paste it into the terminal',
   '',
   'Also accepted: the bare token, "Bearer <token>", or a "Copy as cURL" command.',
 ].join('\n');
@@ -147,6 +196,22 @@ function fmtPlan(plan, showUnscheduled = false) {
       lines.push(`${plan.unscheduled.length} unscheduled meals - show with --unscheduled`);
     }
   }
+  return lines.join('\n');
+}
+
+function fmtRecipe(r) {
+  const name = r.name ?? '(no name)';
+  const lines = [name, '='.repeat(name.length), ''];
+  if (r.description) lines.push(r.description, '');
+  if (r.servings) lines.push(`Servings: ${r.servings}`);
+  if (r.cookTime) lines.push(`Cooking time: ${r.cookTime} min`);
+  lines.push('', 'Ingredients:');
+  for (const i of r.ingredients ?? []) lines.push(`  - ${i}`);
+  if (r.instructions?.length) {
+    lines.push('', 'Instructions:');
+    r.instructions.forEach((s, n) => lines.push(`  ${n + 1}. ${s}`));
+  }
+  if (r.source?.url) lines.push('', `Source: ${r.source.url}`);
   return lines.join('\n');
 }
 
@@ -192,6 +257,12 @@ function fmtList(list) {
 }
 
 async function main() {
+  const parsed = parseArgs(process.argv.slice(2));
+  flags = parsed.flags;
+  [command, sub, ...rest] = parsed.positional;
+  if (flags.version) return out(VERSION);
+  if (flags.help && command !== 'serve') command = 'help';
+
   // ---------------------------------------------------------------- login
   if (command === 'login') {
     if (flags.open) {
@@ -199,7 +270,12 @@ async function main() {
       console.error(`Opened ${APP_URL}.`);
     }
     // Input order: CLI argument, stdin (--paste or piped), clipboard.
-    const arg = [flags.token, flags.open, sub, ...rest].filter((v) => typeof v === 'string').join(' ');
+    const arg = [flags.token, sub, ...rest].filter((v) => typeof v === 'string').join(' ');
+    if (arg) {
+      console.error(
+        'Warning: a credential passed on the command line ends up in your shell history. Prefer copying it and running `sf login` (reads the clipboard) or `sf login --paste`.'
+      );
+    }
     let token = extractToken(arg);
     if (!token && (flags.paste || !process.stdin.isTTY)) {
       if (flags.paste && process.stdin.isTTY) console.error('Paste the cookie string, token or cURL command and finish with Ctrl-D:');
@@ -223,7 +299,7 @@ async function main() {
 
   if (command === 'logout') {
     clearToken();
-    return out(`Token removed from ${AUTH_FILE} (cached list and meal plan ids are kept).`);
+    return out(`Token removed from ${AUTH_FILE} (the cached meal plan id is kept).`);
   }
 
   if (command === 'renew') {
@@ -240,6 +316,12 @@ async function main() {
     );
   }
 
+  if (command === 'serve') {
+    const { runServe } = await import('../src/http/serve.js');
+    await runServe(flags);
+    return;
+  }
+
   if (command === 'auth' || command === 'status') {
     const si = schemaInfo();
     const schema = si
@@ -247,6 +329,24 @@ async function main() {
       : 'not built yet - run: sf schema update';
     return out({ file: AUTH_FILE, token: authStatus(), schema });
   }
+
+  if (command === 'tools') {
+    const { TOOLS, toolArea, toolAccess } = await import('../src/tools/index.js');
+    const rows = TOOLS.map((t) => ({ name: t.name, area: toolArea(t.name), access: toolAccess(t), description: t.description }));
+    if (flags.json) return out(rows);
+    const width = Math.max(...rows.map((r) => r.name.length));
+    const lines = [`${rows.length} tools`];
+    for (const area of [...new Set(rows.map((r) => r.area))]) {
+      lines.push('', area);
+      for (const r of rows.filter((x) => x.area === area)) lines.push(`  ${r.name.padEnd(width)}  ${r.access}`);
+    }
+    return out(lines.join('\n'));
+  }
+
+  // Guards that must run before any network access: raw-call blocklist and confirmations.
+  if (command === 'call' && sub) assertRawCallAllowed(sub);
+  const action = destructiveAction();
+  if (action) await confirm(action);
 
   // Everything below needs a token.
   // No command: print the help text without touching the network.
@@ -257,13 +357,23 @@ async function main() {
   switch (command) {
     case 'whoami': {
       const me = await sf.me();
-      return out({
+      const info = {
         id: me.id,
         name: [me.settings?.firstName, me.settings?.lastName].filter(Boolean).join(' '),
         language: me.settings?.language,
         country: me.settings?.country,
         calorieGoal: me.settings?.nutritionGoals?.calorieGoal ?? null,
-      });
+      };
+      if (flags.json) return out(info);
+      return out(
+        [
+          `Account       ${info.id}`,
+          `Name          ${info.name || '-'}`,
+          `Language      ${info.language ?? '-'}`,
+          `Country       ${info.country ?? '-'}`,
+          `Calorie goal  ${info.calorieGoal ?? '-'}`,
+        ].join('\n')
+      );
     }
 
     case 'plan': {
@@ -272,7 +382,7 @@ async function main() {
         if (!recipeId) throw new Error('Usage: sf plan add <recipeId> --date 2026-09-22 --meal dinner');
         const created = await sf.addMeal({
           recipeId,
-          date: flags.date === true ? undefined : flags.date ?? today(),
+          date: flags.date ?? today(),
           mealTime: flags.meal ?? 'dinner',
         });
         return out(created);
@@ -289,15 +399,8 @@ async function main() {
         return out(await sf.moveMeal({ mealId, date: flags.date, mealTime: flags.meal }));
       }
       if (sub === 'clear') {
-        if (flags.unscheduled) {
-          await confirm('clear ALL unscheduled meals');
-          return out(await sf.clearUnscheduled());
-        }
-        const from = typeof flags.from === 'string' ? flags.from : today();
-        const to = typeof flags.to === 'string' ? flags.to : undefined;
-        const days = intFlag('days', 7);
-        await confirm(`delete all meals ${to ? `from ${from} to ${to}` : `for ${days} day(s) starting ${from}`}`);
-        return out(await sf.clearWeek({ from, days, to }));
+        if (flags.unscheduled) return out(await sf.clearUnscheduled());
+        return out(await sf.clearWeek({ from: flags.from ?? today(), days: intFlag('days', 7), to: flags.to }));
       }
       if (sub === 'again' || sub === 'previously') {
         const prev = await sf.previouslyPlanned({ limit: intFlag('limit', 30) });
@@ -378,7 +481,15 @@ async function main() {
         if (!rest.length) throw new Error('Usage: sf list rm <itemId> [<itemId> …]');
         return out(await sf.deleteListItems(rest, { listId: flags.list }));
       }
-      if (sub === 'all') return out(await sf.lists());
+      if (sub === 'all') {
+        const lists = await sf.lists();
+        if (flags.json) return out(lists);
+        return out(
+          lists
+            .map((l) => `  ${l.name ?? '(no name)'}${l.isPrimary ? ' (primary)' : ''}${l.itemCount == null ? '' : `, ${l.itemCount} items`}${l.role ? `, ${l.role}` : ''}\n      ${l.id}`)
+            .join('\n') || 'No shopping lists.'
+        );
+      }
       const list = await sf.listItems(typeof flags.list === 'string' ? flags.list : undefined);
       return out(flags.json ? list : fmtList(list));
     }
@@ -399,26 +510,20 @@ async function main() {
       const id = sub;
       if (!id) throw new Error('Usage: sf recipe <recipeId>');
       const r = await sf.recipe(id);
-      if (flags.json) return out(r);
-      const lines = [r.name, '='.repeat(r.name.length), ''];
-      if (r.description) lines.push(r.description, '');
-      if (r.servings) lines.push(`Servings: ${r.servings}`);
-      if (r.cookTime) lines.push(`Cooking time: ${r.cookTime} min`);
-      lines.push('', 'Ingredients:');
-      for (const i of r.ingredients ?? []) lines.push(`  - ${i}`);
-      if (r.instructions?.length) {
-        lines.push('', 'Instructions:');
-        r.instructions.forEach((s, n) => lines.push(`  ${n + 1}. ${s}`));
-      }
-      if (r.source?.url) lines.push('', `Source: ${r.source.url}`);
-      return out(lines.join('\n'));
+      return out(flags.json ? r : fmtRecipe(r));
     }
 
     case 'import': {
       const url = sub;
       if (!url) throw new Error('Usage: sf import <url>');
-      if (flags.dry) return out(await sf.extractRecipe(url));
-      return out(await sf.importRecipe(url));
+      if (flags.dry) {
+        const res = await sf.extractRecipe(url);
+        if (flags.json) return out(res);
+        if (res.status !== 'ok' || !res.recipe) return out(`Only partially parsed (${res.status}); see --json for the raw result.`);
+        return out(fmtRecipe(res.recipe));
+      }
+      const saved = await sf.importRecipe(url);
+      return out(flags.json ? saved : `Imported "${saved.name}"   [${saved.id}]`);
     }
 
     case 'discover': {
@@ -442,11 +547,16 @@ async function main() {
         lines.push(`  ${o.label.padEnd(16)} ${String(o.days).padStart(4)} days   (${o.min}–${o.max} ${o.metric})${mark}`);
       }
       if (info.ambiguous) lines.push('', '  Multiple storage locations - Samsung Food does not set an expiry date on its own here.');
+      if (info.warning) lines.push('', `  ${info.warning}`);
       return out(lines.join('\n'));
     }
 
-    case 'collections':
-      return out(await sf.collections());
+    case 'collections': {
+      const list = await sf.collections();
+      if (flags.json) return out(list);
+      if (!list.length) return out('No collections.');
+      return out(list.map((c) => `  ${c.name ?? '(no name)'}${c.recipeCount == null ? '' : ` (${c.recipeCount} recipes)`}\n      ${c.id}`).join('\n'));
+    }
 
     case 'pantry': {
       if (sub === 'add') {
@@ -458,8 +568,9 @@ async function main() {
         return out(
           items
             .map((i) => {
-              const warn =
-                !i.expiryDate && i.storage?.ambiguous
+              const warn = i.warning
+                ? `\n      ${i.warning}`
+                : !i.expiryDate && i.storage?.ambiguous
                   ? `\n      no expiry date - specify a location: ${Object.entries(i.storage.options)
                       .map(([k, v]) => `--location ${k} (${v.days} d)`)
                       .join(' | ')}`
@@ -505,8 +616,15 @@ async function main() {
 
     case 'call': {
       if (!sub) throw new Error("Usage: sf call <method> '<json>'");
-      const body = rest[0] ? JSON.parse(rest[0]) : {};
-      return out(await sf.call(sub, body));
+      let body = {};
+      if (rest[0]) {
+        try {
+          body = JSON.parse(rest[0]);
+        } catch {
+          throw new Error(`The request body must be JSON, e.g. sf call ${sub} '{}'`);
+        }
+      }
+      return out(redactSecrets(await sf.call(sub, body), sub));
     }
 
     default:
@@ -556,9 +674,17 @@ async function main() {
           '',
           '  sf methods [filter]              all API methods',
           '  sf describe <method>            signature',
-          "  sf call <method> '<json>'       raw call",
+          "  sf call <method> '<json>'       raw call (credential methods blocked, secrets redacted)",
+          '  sf tools [--json]                all MCP tools: area and read-only / write / destructive',
           '',
-          'Everywhere: add --json for unformatted output.',
+          '  sf serve [--host 127.0.0.1] [--port 8787] [--read-only] [--allow-raw] [--cors <origin>]',
+          '                                   local HTTP API: /v1/tools, /openapi.json, /docs, /mcp',
+          '  sf serve --show-key              print the API key',
+          '',
+          'Commands that show data print formatted text; add --json for the raw JSON. Most write commands print their JSON result.',
+          'Commands that delete or overwrite data ask first; pass --yes to skip the question (required without a terminal).',
+          '',
+          '  sf --version                     print the version',
         ].join('\n')
       );
   }

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.derdennis1012/unofficial-samsung-food-mcp",
+  "title": "Unofficial Samsung Food MCP",
+  "description": "Unofficial MCP server for Samsung Food: meal plan, shopping list, recipes and pantry.",
+  "repository": {
+    "url": "https://github.com/derdennis1012/unofficial-samsung-food-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "websiteUrl": "https://derdennis1012.github.io/unofficial-samsung-food-mcp/",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "unofficial-samsung-food-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "SAMSUNG_FOOD_LOCALE",
+          "description": "Locale for requests and the food graph, for example de-DE.",
+          "isRequired": false,
+          "isSecret": false,
+          "default": "en-US"
+        },
+        {
+          "name": "SAMSUNG_FOOD_TOKEN",
+          "description": "Session token. Optional: normally run `sf login` once instead, which stores and renews the token.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "SAMSUNG_FOOD_HOME",
+          "description": "Config and cache directory. Default: ~/.samsung-food",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas (Discussions)
+    url: https://github.com/derdennis1012/unofficial-samsung-food-mcp/discussions
+    about: Ask how to use the project, share setups, or float an idea before opening an issue.
+  - name: Report a security vulnerability
+    url: https://github.com/derdennis1012/unofficial-samsung-food-mcp/security/advisories/new
+    about: Report vulnerabilities privately. Never post tokens, cookies or HAR files in public.

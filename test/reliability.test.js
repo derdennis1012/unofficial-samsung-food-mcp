@@ -295,3 +295,40 @@ test('Retry-After accepts seconds and HTTP dates', () => {
   assert.equal(parseRetryAfter('garbage'), 0);
   assert.equal(parseRetryAfter(null), 0);
 });
+
+/* ---- HTTP auth statuses, malformed grpc-message, write decode failures */
+
+test('HTTP 401/403 map to UNAUTHENTICATED/PERMISSION_DENIED; 401 becomes the login hint', async () => {
+  const { t } = transportWith([http(401)]);
+  const e401 = await t.call('x.y.v1.A/GetThing', Buffer.alloc(0), { read: true }).catch((e) => e);
+  assert.equal(e401.status, 16);
+  assert.equal(e401.statusName, 'UNAUTHENTICATED');
+  const { t: t2 } = transportWith([http(403)]);
+  const e403 = await t2.call('x.y.v1.A/GetThing', Buffer.alloc(0), { read: true }).catch((e) => e);
+  assert.equal(e403.status, 7);
+
+  const { t: t3 } = transportWith([http(401)]);
+  const sf = new SamsungFood({ schema: mini(), token: 'fake', transport: t3 });
+  await assert.rejects(sf.call('p.v1.A/GetThing', { id: '1' }), /Run `sf login`.*getting-started/);
+});
+
+test('a grpc-message with a bare % does not throw a URIError', async () => {
+  const { t } = transportWith([grpcFail(3, '100% wrong%2')]);
+  const err = await t.call('x.y.v1.A/AddThing', Buffer.alloc(0), { read: false }).catch((e) => e);
+  assert.ok(err instanceof GrpcError, String(err));
+  assert.match(err.message, /100% wrong%2/);
+});
+
+test('a write whose response cannot be decoded warns that it was probably applied', async () => {
+  const schema = {
+    rpcs: { 'p.v1.A/AddThing': { request: [], response: [{ n: 1, name: 'name', type: 'string' }] } },
+    messages: {},
+  };
+  // field 1 (LEN) claims 20 bytes, only 1 follows
+  const sf = new SamsungFood({ schema, token: 'fake', transport: { call: async () => Buffer.from([0x0a, 20, 0x61]) } });
+  sf._lastSchemaRefresh = Date.now(); // no refresh attempt
+  await assert.rejects(sf.call('p.v1.A/AddThing', {}), /probably applied; check the current state before retrying/);
+  const read = new SamsungFood({ schema: mini(), token: 'fake', transport: { call: async () => Buffer.from([0x0a, 20, 0x61]) } });
+  read._lastSchemaRefresh = Date.now();
+  await assert.rejects(read.call('p.v1.A/GetThing', {}), (e) => e instanceof SchemaDriftError && !/probably applied/.test(e.message));
+});
