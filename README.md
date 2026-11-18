@@ -62,9 +62,6 @@ It logs you in (a page opens in your browser), finds Claude Code, Claude Desktop
 and asks which of them to configure. Then restart the client and ask: "What's on my meal plan this
 week?" Preview first with `--dry-run`; undo with `--remove`.
 
-> The npm package is not released yet. Until then: clone the repository, run `npm install`, then
-> `node bin/sf.js setup --local` (the clients then start this checkout instead of `npx`).
-
 **How the login works.** Samsung Food has no OAuth or API keys, so the tool takes over the session of
 your browser once. The login page shows one button: drag it to your bookmarks bar, open
 [app.samsungfood.com](https://app.samsungfood.com) and click it there. No browser on the machine

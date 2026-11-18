@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-18
+
+Initial release.
+
 ### Added
 
 - Hosted multi-user connector `sf host` (also `sf-host`, Docker image): an OAuth 2.1 authorization
@@ -87,10 +91,6 @@ All notable changes to this project are documented here. The format follows
 - FAQ: the User-Agent is `unofficial-samsung-food-mcp/<version> (+https://github.com/derdennis1012/unofficial-samsung-food-mcp)`.
   `x-whisk-app-version` documented as a fixed default with the `SAMSUNG_FOOD_APP_VERSION` override.
 - CLI reference: option syntax, which commands honour `--json`, which commands ask for confirmation.
-
-## [0.1.0] - Unreleased
-
-Initial version.
 
 ### Added
 

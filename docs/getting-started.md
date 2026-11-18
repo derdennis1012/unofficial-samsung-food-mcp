@@ -29,9 +29,8 @@ npx unofficial-samsung-food-mcp setup
 `--dry-run` shows what would happen without writing anything, `--yes` skips the question (scripts),
 `--remove` takes the entries out again.
 
-> **Before the npm release** `npx` cannot find the package yet. Clone instead (see
-> [From source](#from-source)) and run `node bin/sf.js setup --local`: the clients then start your
-> checkout with the current `node` instead of `npx`.
+> Working from a clone (see [From source](#from-source))? Run `node bin/sf.js setup --local`: the
+> clients then start your checkout with the current `node` instead of `npx`.
 
 **Other ways in.** No local install: the [hosted connector](hosted.md) for ChatGPT and claude.ai
 (closed beta). Configuring a client by hand: [MCP clients](mcp-clients.md) (log in first with

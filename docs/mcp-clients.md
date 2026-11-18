@@ -1,7 +1,7 @@
 # MCP clients
 
-Shortcut: `npx unofficial-samsung-food-mcp setup` (before the npm release: `node bin/sf.js setup
---local` in a checkout) logs you in and writes these entries for Claude Code, Claude Desktop and
+Shortcut: `npx unofficial-samsung-food-mcp setup` (from a checkout: `node bin/sf.js setup
+--local`) logs you in and writes these entries for Claude Code, Claude Desktop and
 Cursor, with a backup of each file; for VS Code it prints the snippet. This page is for doing it by
 hand or for other clients.
 
