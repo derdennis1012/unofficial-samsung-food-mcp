@@ -181,7 +181,9 @@ test('sf login (local page): without the secret from the CLI no other local proc
     const intruder = client(login.url);
     assert.equal((await intruder.request('GET', '/')).status, 403, 'no secret');
     assert.equal((await intruder.request('GET', '/?k=wrong')).status, 403, 'wrong secret');
-    assert.equal((await intruder.request('GET', `/?k=${u.searchParams.get('k').slice(0, -1)}A`)).status, 403);
+    const k = u.searchParams.get('k');
+    const nearMiss = k.slice(0, -1) + (k.endsWith('A') ? 'B' : 'A'); // differs in the last character only
+    assert.equal((await intruder.request('GET', `/?k=${nearMiss}`)).status, 403, 'near-miss secret');
     assert.equal(intruder.jar.size, 0, 'no pending login (cookie) was created');
     const owner = client(login.url);
     const page = await owner.request('GET', login.url);
