@@ -172,3 +172,7 @@ small hand-made schema fixture for the offline tests. No telemetry. Details:
 - Changes: [CHANGELOG.md](CHANGELOG.md). Conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 - License: MIT, see [LICENSE](LICENSE). It covers the code in this repository only and grants no
   rights to Samsung Food, its API, data or trademarks.
+
+## Author
+
+Made by Dennis Bölling, [QAD Soft](https://qadsoft.dev) · [GitHub @derdennis1012](https://github.com/derdennis1012)
